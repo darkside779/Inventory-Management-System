@@ -4,6 +4,8 @@ using InventoryManagement.Application.Features.Transactions.Commands.CreateStock
 using InventoryManagement.Application.Features.Transactions.Queries.GetAllTransactions;
 using InventoryManagement.Application.Features.Transactions.Queries.GetTransactionById;
 using InventoryManagement.Application.Features.Transactions.Queries.GetTransactionsByProduct;
+using InventoryManagement.Application.Features.Products.Queries.GetAllProducts;
+using InventoryManagement.Application.Features.Warehouses.Queries.GetAllWarehouses;
 using InventoryManagement.Domain.Enums;
 using InventoryManagement.WebUI.ViewModels.Transactions;
 using MediatR;
@@ -32,10 +34,7 @@ public class TransactionController : BaseController
     /// <param name="pageSize">Page size</param>
     /// <returns>Transaction index view</returns>
     [HttpGet]
-    public async Task<IActionResult> Index(
-        TransactionFilterViewModel? filter = null,
-        int pageNumber = 1,
-        int pageSize = 10)
+    public async Task<IActionResult> Index(TransactionFilterViewModel filter, int pageNumber = 1, int pageSize = 10)
     {
         try
         {
@@ -64,7 +63,7 @@ public class TransactionController : BaseController
             }
 
             // Load dropdown data
-            var (products, warehouses) = LoadDropdownData();
+            var (products, warehouses) = await LoadDropdownDataAsync();
 
             var viewModel = new TransactionIndexViewModel
             {
@@ -137,12 +136,12 @@ public class TransactionController : BaseController
     /// <returns>Create stock in view</returns>
     [HttpGet]
     [Authorize(Roles = "Admin,Manager")]
-    public IActionResult CreateStockIn()
+    public async Task<IActionResult> CreateStockIn()
     {
         try
         {
-            var (products, warehouses) = LoadDropdownData();
-
+            var (products, warehouses) = await LoadDropdownDataAsync();
+            
             var viewModel = new CreateStockInViewModel
             {
                 Products = new SelectList(products, "Value", "Text"),
@@ -173,7 +172,7 @@ public class TransactionController : BaseController
         {
             if (!ModelState.IsValid)
             {
-                var (dropdownProducts, dropdownWarehouses) = LoadDropdownData();
+                var (dropdownProducts, dropdownWarehouses) = await LoadDropdownDataAsync();
                 model.Products = new SelectList(dropdownProducts, "Value", "Text", model.ProductId);
                 model.Warehouses = new SelectList(dropdownWarehouses, "Value", "Text", model.WarehouseId);
                 return View(model);
@@ -200,7 +199,7 @@ public class TransactionController : BaseController
             }
 
             ModelState.AddModelError("", response.ErrorMessage ?? "Failed to create stock in transaction");
-            var (products, warehouses) = LoadDropdownData();
+            var (products, warehouses) = await LoadDropdownDataAsync();
             model.Products = new SelectList(products, "Value", "Text", model.ProductId);
             model.Warehouses = new SelectList(warehouses, "Value", "Text", model.WarehouseId);
             return View(model);
@@ -209,7 +208,7 @@ public class TransactionController : BaseController
         {
             _logger.LogError(ex, "Error occurred while creating stock in transaction");
             ModelState.AddModelError("", "An error occurred while creating the transaction");
-            var (products, warehouses) = LoadDropdownData();
+            var (products, warehouses) = await LoadDropdownDataAsync();
             model.Products = new SelectList(products, "Value", "Text", model.ProductId);
             model.Warehouses = new SelectList(warehouses, "Value", "Text", model.WarehouseId);
             return View(model);
@@ -222,11 +221,11 @@ public class TransactionController : BaseController
     /// <returns>Create stock out view</returns>
     [HttpGet]
     [Authorize(Roles = "Admin,Manager,Employee")]
-    public IActionResult CreateStockOut()
+    public async Task<IActionResult> CreateStockOut()
     {
         try
         {
-            var (products, warehouses) = LoadDropdownData();
+            var (products, warehouses) = await LoadDropdownDataAsync();
 
             var viewModel = new CreateStockOutViewModel
             {
@@ -258,7 +257,7 @@ public class TransactionController : BaseController
         {
             if (!ModelState.IsValid)
             {
-                var (dropdownProducts2, dropdownWarehouses2) = LoadDropdownData();
+                var (dropdownProducts2, dropdownWarehouses2) = await LoadDropdownDataAsync();
                 model.Products = new SelectList(dropdownProducts2, "Value", "Text", model.ProductId);
                 model.Warehouses = new SelectList(dropdownWarehouses2, "Value", "Text", model.WarehouseId);
                 return View(model);
@@ -285,7 +284,7 @@ public class TransactionController : BaseController
             }
 
             ModelState.AddModelError("", response.ErrorMessage ?? "Failed to create stock out transaction");
-            var (products, warehouses) = LoadDropdownData();
+            var (products, warehouses) = await LoadDropdownDataAsync();
             model.Products = new SelectList(products, "Value", "Text", model.ProductId);
             model.Warehouses = new SelectList(warehouses, "Value", "Text", model.WarehouseId);
             return View(model);
@@ -294,7 +293,7 @@ public class TransactionController : BaseController
         {
             _logger.LogError(ex, "Error occurred while creating stock out transaction");
             ModelState.AddModelError("", "An error occurred while creating the transaction");
-            var (products, warehouses) = LoadDropdownData();
+            var (products, warehouses) = await LoadDropdownDataAsync();
             model.Products = new SelectList(products, "Value", "Text", model.ProductId);
             model.Warehouses = new SelectList(warehouses, "Value", "Text", model.WarehouseId);
             return View(model);
@@ -307,11 +306,11 @@ public class TransactionController : BaseController
     /// <returns>Create adjustment view</returns>
     [HttpGet]
     [Authorize(Roles = "Admin,Manager")]
-    public IActionResult CreateAdjustment()
+    public async Task<IActionResult> CreateAdjustment()
     {
         try
         {
-            var (products, warehouses) = LoadDropdownData();
+            var (products, warehouses) = await LoadDropdownDataAsync();
 
             var viewModel = new CreateAdjustmentViewModel
             {
@@ -343,7 +342,7 @@ public class TransactionController : BaseController
         {
             if (!ModelState.IsValid)
             {
-                var (dropdownProducts3, dropdownWarehouses3) = LoadDropdownData();
+                var (dropdownProducts3, dropdownWarehouses3) = await LoadDropdownDataAsync();
                 model.Products = new SelectList(dropdownProducts3, "Value", "Text", model.ProductId);
                 model.Warehouses = new SelectList(dropdownWarehouses3, "Value", "Text", model.WarehouseId);
                 return View(model);
@@ -370,7 +369,7 @@ public class TransactionController : BaseController
             }
 
             ModelState.AddModelError("", response.ErrorMessage ?? "Failed to create adjustment transaction");
-            var (products, warehouses) = LoadDropdownData();
+            var (products, warehouses) = await LoadDropdownDataAsync();
             model.Products = new SelectList(products, "Value", "Text", model.ProductId);
             model.Warehouses = new SelectList(warehouses, "Value", "Text", model.WarehouseId);
             return View(model);
@@ -379,7 +378,7 @@ public class TransactionController : BaseController
         {
             _logger.LogError(ex, "Error occurred while creating adjustment transaction");
             ModelState.AddModelError("", "An error occurred while creating the transaction");
-            var (products, warehouses) = LoadDropdownData();
+            var (products, warehouses) = await LoadDropdownDataAsync();
             model.Products = new SelectList(products, "Value", "Text", model.ProductId);
             model.Warehouses = new SelectList(warehouses, "Value", "Text", model.WarehouseId);
             return View(model);
@@ -485,7 +484,7 @@ public class TransactionController : BaseController
     /// Load dropdown data for products and warehouses
     /// </summary>
     /// <returns>Tuple of products and warehouses select list items</returns>
-    private (List<SelectListItem> products, List<SelectListItem> warehouses) LoadDropdownData()
+    private async Task<(List<SelectListItem> products, List<SelectListItem> warehouses)> LoadDropdownDataAsync()
     {
         var products = new List<SelectListItem>
         {
@@ -499,9 +498,35 @@ public class TransactionController : BaseController
 
         try
         {
-            // In a real implementation, you'd query the products and warehouses
-            // For now, we'll return empty lists
-            // You could use GetAllProductsQuery and GetAllWarehousesQuery here
+            // Load products
+            var productsQuery = new GetAllProductsQuery 
+            { 
+                PageNumber = 1, 
+                PageSize = 1000, // Get all products for dropdown
+                ActiveOnly = true 
+            };
+            var productsResponse = await _mediator.Send(productsQuery);
+            
+            products.AddRange(productsResponse.Items.Select(p => new SelectListItem
+            {
+                Value = p.Id.ToString(),
+                Text = $"{p.Name} - {p.SKU}"
+            }));
+
+            // Load warehouses
+            var warehousesQuery = new GetAllWarehousesQuery 
+            { 
+                PageNumber = 1, 
+                PageSize = 1000, // Get all warehouses for dropdown
+                ActiveOnly = true 
+            };
+            var warehousesResponse = await _mediator.Send(warehousesQuery);
+            
+            warehouses.AddRange(warehousesResponse.Warehouses.Select(w => new SelectListItem
+            {
+                Value = w.Id.ToString(),
+                Text = w.Name
+            }));
         }
         catch (Exception ex)
         {

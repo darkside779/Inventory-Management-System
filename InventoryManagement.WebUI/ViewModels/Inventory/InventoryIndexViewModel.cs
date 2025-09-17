@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using InventoryManagement.Application.DTOs;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace InventoryManagement.WebUI.ViewModels.Inventory;
 
@@ -72,6 +73,11 @@ public class InventoryIndexViewModel
     /// Page title
     /// </summary>
     public string PageTitle { get; set; } = "Inventory Management";
+    
+    /// <summary>
+    /// Available warehouses for filtering
+    /// </summary>
+    public SelectList Warehouses { get; set; } = new SelectList(new List<object>(), "Value", "Text");
 }
 
 

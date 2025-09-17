@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using AutoMapper;
+using InventoryManagement.Application.Features.Products.Queries.GetAllProducts;
+using InventoryManagement.Application.Features.Products.Queries.GetProductById;
 using InventoryManagement.Application.Features.Products.Commands.CreateProduct;
 using InventoryManagement.Application.Features.Products.Commands.UpdateProduct;
 using InventoryManagement.Application.Features.Products.Commands.DeleteProduct;
-using InventoryManagement.Application.Features.Products.Queries.GetProductById;
-using InventoryManagement.Application.Features.Products.Queries.GetAllProducts;
 using InventoryManagement.Application.Features.Categories.Queries.GetAllCategories;
 using InventoryManagement.Application.Features.Suppliers.Queries.GetAllSuppliers;
 using InventoryManagement.WebUI.ViewModels.Product;
@@ -52,6 +52,11 @@ public class ProductController : BaseController
 
             var result = await _mediator.Send(query);
             var viewModel = _mapper.Map<ProductIndexViewModel>(result);
+            
+            // Load categories for dropdown
+            var categoriesQuery = new GetAllCategoriesQuery { ActiveOnly = true };
+            var categories = await _mediator.Send(categoriesQuery);
+            viewModel.Categories = categories.ToList();
             
             // Set search parameters for view
             viewModel.CurrentSearch = search;

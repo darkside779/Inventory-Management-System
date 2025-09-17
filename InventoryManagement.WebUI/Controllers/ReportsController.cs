@@ -3,6 +3,9 @@ using InventoryManagement.Application.Features.Reports.Queries.GetDashboardSumma
 using InventoryManagement.Application.Features.Reports.Queries.GetInventoryReport;
 using InventoryManagement.Application.Features.Reports.Queries.GetProductMovementReport;
 using InventoryManagement.Application.Features.Reports.Queries.GetTransactionReport;
+using InventoryManagement.Application.Features.Products.Queries.GetAllProducts;
+using InventoryManagement.Application.Features.Categories.Queries.GetAllCategories;
+using InventoryManagement.Application.Features.Warehouses.Queries.GetAllWarehouses;
 using InventoryManagement.WebUI.ViewModels.Reports;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -122,7 +125,7 @@ public class ReportsController : BaseController
             }
 
             // Load dropdown data
-            LoadReportDropdownData(filter);
+            await LoadReportDropdownDataAsync(filter);
 
             var viewModel = new InventoryReportViewModel
             {
@@ -199,7 +202,7 @@ public class ReportsController : BaseController
             }
 
             // Load dropdown data
-            LoadReportDropdownData(filter);
+            await LoadReportDropdownDataAsync(filter);
 
             var viewModel = new TransactionReportViewModel
             {
@@ -272,7 +275,7 @@ public class ReportsController : BaseController
             }
 
             // Load dropdown data
-            LoadReportDropdownData(filter);
+            await LoadReportDropdownDataAsync(filter);
 
             var viewModel = new ProductMovementReportViewModel
             {
@@ -426,14 +429,37 @@ public class ReportsController : BaseController
     /// <summary>
     /// Load dropdown data for report filters
     /// </summary>
-    private void LoadReportDropdownData<T>(T filter) where T : class
+    private async Task LoadReportDropdownDataAsync<T>(T filter) where T : class
     {
         try
         {
-            // For now, create empty select lists - these would be populated via separate queries
-            ViewBag.Products = new SelectList(new List<object>(), "Value", "Text");
-            ViewBag.Categories = new SelectList(new List<object>(), "Value", "Text");
-            ViewBag.Warehouses = new SelectList(new List<object>(), "Value", "Text");
+            // Load Products
+            var productsQuery = new GetAllProductsQuery 
+            { 
+                PageNumber = 1, 
+                PageSize = 1000, 
+                ActiveOnly = true 
+            };
+            var productsResponse = await _mediator.Send(productsQuery);
+            var products = productsResponse.Items.Select(p => new { Value = p.Id.ToString(), Text = $"{p.Name} - {p.SKU}" });
+            ViewBag.Products = new SelectList(products, "Value", "Text");
+
+            // Load Categories
+            var categoriesQuery = new GetAllCategoriesQuery { ActiveOnly = true };
+            var categories = await _mediator.Send(categoriesQuery);
+            var categoryList = categories.Select(c => new { Value = c.Id.ToString(), Text = c.Name });
+            ViewBag.Categories = new SelectList(categoryList, "Value", "Text");
+
+            // Load Warehouses
+            var warehousesQuery = new GetAllWarehousesQuery 
+            { 
+                PageNumber = 1, 
+                PageSize = 1000, 
+                ActiveOnly = true 
+            };
+            var warehousesResponse = await _mediator.Send(warehousesQuery);
+            var warehouses = warehousesResponse.Warehouses.Select(w => new { Value = w.Id.ToString(), Text = w.Name });
+            ViewBag.Warehouses = new SelectList(warehouses, "Value", "Text");
 
             if (filter is TransactionReportFilterViewModel)
             {

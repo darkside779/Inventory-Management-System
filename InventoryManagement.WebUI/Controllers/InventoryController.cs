@@ -8,8 +8,10 @@ using InventoryManagement.Application.Features.Inventory.Queries.GetInventoryByP
 using InventoryManagement.Application.Features.Inventory.Commands.AdjustStock;
 using InventoryManagement.Application.Features.Inventory.Commands.ReserveStock;
 using InventoryManagement.Application.Features.Inventory.Commands.TransferStock;
+using InventoryManagement.Application.Features.Warehouses.Queries.GetAllWarehouses;
 using InventoryManagement.WebUI.ViewModels.Inventory;
 using InventoryManagement.WebUI.Controllers;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace InventoryManagement.WebUI.Controllers;
 
@@ -50,6 +52,26 @@ public class InventoryController : BaseController
 
             var result = await _mediator.Send(query);
 
+            // Load warehouses for dropdown
+            var warehousesQuery = new GetAllWarehousesQuery 
+            { 
+                PageNumber = 1, 
+                PageSize = 1000, // Get all warehouses for dropdown
+                ActiveOnly = true 
+            };
+            var warehousesResponse = await _mediator.Send(warehousesQuery);
+            
+            var warehouseSelectList = new List<SelectListItem>
+            {
+                new() { Value = "", Text = "All Warehouses" }
+            };
+            warehouseSelectList.AddRange(warehousesResponse.Warehouses.Select(w => new SelectListItem
+            {
+                Value = w.Id.ToString(),
+                Text = w.Name,
+                Selected = w.Id == warehouseId
+            }));
+
             var viewModel = new InventoryIndexViewModel
             {
                 Inventories = result.Inventories.ToList(),
@@ -64,7 +86,8 @@ public class InventoryController : BaseController
                 SortDirection = sortDirection,
                 HasPreviousPage = result.HasPreviousPage,
                 HasNextPage = result.HasNextPage,
-                PageTitle = "Inventory Management"
+                PageTitle = "Inventory Management",
+                Warehouses = new SelectList(warehouseSelectList, "Value", "Text", warehouseId?.ToString())
             };
 
             SetBreadcrumb(
