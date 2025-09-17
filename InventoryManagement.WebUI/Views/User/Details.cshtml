@@ -1,0 +1,424 @@
+@model InventoryManagement.WebUI.ViewModels.Users.UserDetailsViewModel
+@using InventoryManagement.Domain.Enums
+
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user"></i> User Details
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Users</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.User.Username</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="row">
+        <!-- User Information -->
+        <div class="col-lg-8">
+            <!-- Basic Information Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user-circle"></i> Basic Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong class="text-muted">Full Name:</strong><br>
+                                <h5 class="mb-1">@Model.User.FullName</h5>
+                            </div>
+                            <div class="mb-3">
+                                <strong class="text-muted">Username:</strong><br>
+                                <code class="h6">@Model.User.Username</code>
+                            </div>
+                            <div class="mb-3">
+                                <strong class="text-muted">Email Address:</strong><br>
+                                <a href="mailto:@Model.User.Email" class="h6 text-decoration-none">@Model.User.Email</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong class="text-muted">Role:</strong><br>
+                                @GetRoleBadge(Model.User.Role)
+                            </div>
+                            <div class="mb-3">
+                                <strong class="text-muted">Status:</strong><br>
+                                @GetStatusBadge(Model.User.IsActive)
+                            </div>
+                            <div class="mb-3">
+                                <strong class="text-muted">User ID:</strong><br>
+                                <code class="text-muted">#@Model.User.Id</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar"></i> User Statistics
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Total Transactions
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                @Model.Stats.TotalTransactions.ToString("N0")
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-exchange-alt fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Last 30 Days
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                @Model.Stats.TransactionsLast30Days.ToString("N0")
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Transaction Value
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                @Model.Stats.TotalTransactionValue.ToString("C")
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Account Age
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                @Model.Stats.AccountAgeInDays days
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-history"></i> Recent Activity
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentActivities.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-borderless">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Activity</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var activity in Model.RecentActivities)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @activity.Timestamp.ToString("MMM dd, HH:mm")
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-info">@activity.ActivityType</span>
+                                            </td>
+                                            <td>
+                                                @activity.Description
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No recent activity</h6>
+                            <p class="text-muted">User activity will appear here once they start using the system.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Sidebar -->
+        <div class="col-lg-4">
+            <!-- Action Buttons -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-cogs"></i> Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.CanEdit)
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.User.Id" class="btn btn-primary btn-block mb-2">
+                            <i class="fas fa-edit"></i> Edit User
+                        </a>
+                    }
+                    
+                    @if (Model.CanResetPassword)
+                    {
+                        <a asp-action="ChangePassword" asp-route-id="@Model.User.Id" class="btn btn-warning btn-block mb-2">
+                            <i class="fas fa-key"></i> Change Password
+                        </a>
+                    }
+                    
+                    @if (Model.User.IsActive)
+                    {
+                        <button type="button" class="btn btn-secondary btn-block mb-2" onclick="toggleUserStatus(@Model.User.Id, false)">
+                            <i class="fas fa-user-slash"></i> Deactivate User
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-success btn-block mb-2" onclick="toggleUserStatus(@Model.User.Id, true)">
+                            <i class="fas fa-user-check"></i> Activate User
+                        </button>
+                    }
+                    
+                    @if (Model.CanDelete)
+                    {
+                        <hr>
+                        <a asp-action="Delete" asp-route-id="@Model.User.Id" class="btn btn-danger btn-block">
+                            <i class="fas fa-trash"></i> Delete User
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Account Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-info-circle"></i> Account Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong class="text-muted">Created:</strong><br>
+                        <span class="text-dark">@Model.User.CreatedAt.ToString("MMMM dd, yyyy 'at' HH:mm")</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="text-muted">Last Updated:</strong><br>
+                        <span class="text-dark">@Model.User.UpdatedAt.ToString("MMMM dd, yyyy 'at' HH:mm")</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="text-muted">Last Login:</strong><br>
+                        @if (Model.User.LastLoginAt.HasValue)
+                        {
+                            <span class="text-dark">@Model.User.LastLoginAt.Value.ToString("MMMM dd, yyyy 'at' HH:mm")</span>
+                            @if (Model.Stats.DaysSinceLastLogin.HasValue)
+                            {
+                                <br><small class="text-muted">(@Model.Stats.DaysSinceLastLogin days ago)</small>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-warning">Never logged in</span>
+                        }
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="text-muted">Login Frequency:</strong><br>
+                        <span class="text-dark">@Model.Stats.LoginFrequency.ToString("F1") logins/month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-shield-alt"></i> Role & Permissions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong class="text-muted">Current Role:</strong><br>
+                        @GetRoleBadge(Model.User.Role)
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="text-muted">Permissions:</strong><br>
+                        @GetRolePermissions(Model.User.Role)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toggle Status Form (Hidden) -->
+<form id="toggleStatusForm" asp-action="Edit" method="post" style="display: none;">
+    <input type="hidden" name="Id" value="@Model.User.Id" />
+    <input type="hidden" name="Username" value="@Model.User.Username" />
+    <input type="hidden" name="Email" value="@Model.User.Email" />
+    <input type="hidden" name="FullName" value="@Model.User.FullName" />
+    <input type="hidden" name="PhoneNumber" value="" />
+    <input type="hidden" name="Role" value="@((int)Model.User.Role)" />
+    <input type="hidden" name="IsActive" id="toggleIsActive" value="@Model.User.IsActive" />
+</form>
+
+@functions {
+    Microsoft.AspNetCore.Html.IHtmlContent GetRoleBadge(UserRole role)
+    {
+        var badgeClass = role switch
+        {
+            UserRole.Administrator => "badge-danger",
+            UserRole.Manager => "badge-warning",
+            UserRole.Staff => "badge-info",
+            _ => "badge-secondary"
+        };
+
+        var icon = role switch
+        {
+            UserRole.Administrator => "fas fa-user-shield",
+            UserRole.Manager => "fas fa-user-tie",
+            UserRole.Staff => "fas fa-user",
+            _ => "fas fa-user"
+        };
+
+        return Html.Raw($"<span class=\"badge badge-pill {badgeClass} p-2\"><i class=\"{icon}\"></i> {role}</span>");
+    }
+
+    Microsoft.AspNetCore.Html.IHtmlContent GetStatusBadge(bool isActive)
+    {
+        var badgeClass = isActive ? "badge-success" : "badge-secondary";
+        var text = isActive ? "Active" : "Inactive";
+        var icon = isActive ? "fa-check-circle" : "fa-times-circle";
+
+        return Html.Raw($"<span class=\"badge badge-pill {badgeClass} p-2\"><i class=\"fas {icon}\"></i> {text}</span>");
+    }
+
+    Microsoft.AspNetCore.Html.IHtmlContent GetRolePermissions(UserRole role)
+    {
+        var permissions = role switch
+        {
+            UserRole.Administrator => new[] { 
+                "Full system access", 
+                "User management", 
+                "System configuration", 
+                "All module access", 
+                "Reports and analytics" 
+            },
+            UserRole.Manager => new[] { 
+                "Inventory management", 
+                "Reports and analytics", 
+                "Staff supervision", 
+                "Transaction oversight" 
+            },
+            UserRole.Staff => new[] { 
+                "Transaction processing", 
+                "Basic inventory operations", 
+                "Personal profile management" 
+            },
+            _ => new[] { "No permissions assigned" }
+        };
+
+        var html = "<ul class=\"list-unstyled mb-0\">";
+        foreach (var permission in permissions)
+        {
+            html += $"<li class=\"small text-muted\"><i class=\"fas fa-check text-success mr-1\"></i> {permission}</li>";
+        }
+        html += "</ul>";
+
+        return Html.Raw(html);
+    }
+}
+
+@section Scripts {
+    <script>
+        function toggleUserStatus(userId, activate) {
+            var action = activate ? 'activate' : 'deactivate';
+            var message = `Are you sure you want to ${action} this user?`;
+            
+            if (confirm(message)) {
+                $('#toggleIsActive').val(activate);
+                $('#toggleStatusForm').submit();
+            }
+        }
+
+        // Auto-refresh user stats every 30 seconds
+        $(document).ready(function() {
+            setInterval(function() {
+                refreshUserStats(@Model.User.Id);
+            }, 30000);
+        });
+
+        function refreshUserStats(userId) {
+            // This would make an AJAX call to refresh user statistics
+            // Implementation would depend on having an API endpoint
+            console.log('Refreshing stats for user:', userId);
+        }
+    </script>
+}

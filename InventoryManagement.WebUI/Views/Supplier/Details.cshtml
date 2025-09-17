@@ -1,0 +1,474 @@
+@model InventoryManagement.WebUI.ViewModels.Suppliers.SupplierDetailsViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-truck me-2"></i>@Model.Name
+                    </h1>
+                    <p class="text-muted mb-0">
+                        @if (!string.IsNullOrWhiteSpace(Model.ContactPerson))
+                        {
+                            <i class="fas fa-user me-1"></i>@Model.ContactPerson
+                        }
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success ms-2">
+                                <i class="fas fa-check me-1"></i>Active
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary ms-2">
+                                <i class="fas fa-times me-1"></i>Inactive
+                            </span>
+                        }
+                    </p>
+                </div>
+                <div class="btn-group">
+                    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                    {
+                        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </a>
+                    }
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-lg-8">
+                    <!-- Supplier Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Supplier Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">Supplier Name</label>
+                                    <div class="fw-semibold">@Model.Name</div>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(Model.ContactPerson))
+                                {
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted">Contact Person</label>
+                                        <div class="fw-semibold">@Model.ContactPerson</div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                                {
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted">Phone Number</label>
+                                        <div class="fw-semibold">
+                                            <i class="fas fa-phone me-2"></i>@Model.Phone
+                                        </div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.Email))
+                                {
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted">Email Address</label>
+                                        <div class="fw-semibold">
+                                            <i class="fas fa-envelope me-2"></i>@Model.Email
+                                        </div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.Address))
+                                {
+                                    <div class="col-12">
+                                        <label class="form-label text-muted">Address</label>
+                                        <div class="fw-semibold">@Model.Address</div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.Website))
+                                {
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted">Website</label>
+                                        <div class="fw-semibold">
+                                            <a href="@Model.Website" target="_blank" class="text-decoration-none">
+                                                <i class="fas fa-external-link-alt me-2"></i>@Model.Website
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.TaxNumber))
+                                {
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted">Tax ID Number</label>
+                                        <div class="fw-semibold">@Model.TaxNumber</div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.PaymentTerms))
+                                {
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted">Payment Terms</label>
+                                        <div class="fw-semibold">@Model.PaymentTerms</div>
+                                    </div>
+                                }
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">Created Date</label>
+                                    <div class="fw-semibold">@Model.CreatedAt.ToString("MMMM dd, yyyy")</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">Last Updated</label>
+                                    <div class="fw-semibold">@Model.UpdatedAt.ToString("MMMM dd, yyyy")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-boxes me-2"></i>Products
+                            </h5>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary active" onclick="showAllProducts(this)">
+                                    All (@Model.TotalProducts)
+                                </button>
+                                <button class="btn btn-outline-success" onclick="showActiveProducts(this)">
+                                    Active (@Model.ActiveProducts)
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="showLowStockProducts(this)">
+                                    Low Stock (@Model.LowStockProducts)
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.Products.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="productsTable">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>SKU</th>
+                                                <th class="text-end">Price</th>
+                                                <th class="text-end">Stock</th>
+                                                <th>Category</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var product in Model.Products)
+                                            {
+                                                <tr data-active="@product.IsActive.ToString().ToLower()" 
+                                                    data-low-stock="@((product.TotalQuantity <= product.LowStockThreshold) ? "true" : "false")">
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fas fa-box text-primary me-2"></i>
+                                                            <div>
+                                                                <div class="fw-semibold">@product.Name</div>
+                                                                @if (!string.IsNullOrWhiteSpace(product.Description))
+                                                                {
+                                                                    <small class="text-muted">@product.Description</small>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark">@product.SKU</span>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <span class="fw-semibold">$@product.Price.ToString("N2")</span>
+                                                        @if (product.Cost.HasValue)
+                                                        {
+                                                            <div class="small text-muted">Cost: $@product.Cost.Value.ToString("N2")</div>
+                                                        }
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <span class="fw-semibold">@product.TotalQuantity.ToString("N0")</span>
+                                                        @if (product.TotalQuantity <= product.LowStockThreshold)
+                                                        {
+                                                            <div class="small text-warning">
+                                                                <i class="fas fa-exclamation-triangle me-1"></i>Low Stock
+                                                            </div>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @if (!string.IsNullOrWhiteSpace(product.CategoryName))
+                                                        {
+                                                            <span class="badge bg-secondary">@product.CategoryName</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">Uncategorized</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @if (product.IsActive)
+                                                        {
+                                                            <span class="badge bg-success">
+                                                                <i class="fas fa-check me-1"></i>Active
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-secondary">
+                                                                <i class="fas fa-times me-1"></i>Inactive
+                                                            </span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-5">
+                                    <i class="fas fa-boxes fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No Products</h5>
+                                    <p class="text-muted">This supplier doesn't have any products yet.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Summary Statistics -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>Summary
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="h4 mb-0 text-primary">@Model.TotalProducts</div>
+                                        <small class="text-muted">Products</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="h4 mb-0 text-info">@Model.ActiveProducts</div>
+                                        <small class="text-muted">Active</small>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="text-center">
+                                        <div class="h4 mb-0 text-success">$@Model.TotalInventoryValue.ToString("N2")</div>
+                                        <small class="text-muted">Total Inventory Value</small>
+                                    </div>
+                                </div>
+                                @if (Model.LowStockProducts > 0)
+                                {
+                                    <div class="col-12">
+                                        <div class="alert alert-warning py-2 mb-0">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>@Model.LowStockProducts</strong> products are low on stock
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Metrics -->
+                    @if (Model.TotalProducts > 0)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Performance
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small class="text-muted">Overall Status</small>
+                                        <small class="fw-semibold @Model.PerformanceStatusClass">
+                                            @Model.PerformanceStatus
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="row g-2 small">
+                                    @if (Model.AverageProductPrice.HasValue)
+                                    {
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">Avg. Price:</span>
+                                                <span class="fw-semibold">$@Model.AverageProductPrice.Value.ToString("N2")</span>
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (Model.HighestPrice.HasValue)
+                                    {
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">Highest Price:</span>
+                                                <span class="fw-semibold">$@Model.HighestPrice.Value.ToString("N2")</span>
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (Model.LowestPrice.HasValue)
+                                    {
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">Lowest Price:</span>
+                                                <span class="fw-semibold">$@Model.LowestPrice.Value.ToString("N2")</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Quick Actions -->
+                    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                    {
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="@Url.Action("Index", "Product", new { supplierId = Model.Id })" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-boxes me-2"></i>View All Products
+                                    </a>
+                                    <a href="@Url.Action("Create", "Product", new { supplierId = Model.Id })" 
+                                       class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-plus me-2"></i>Add New Product
+                                    </a>
+                                    <button class="btn btn-outline-info btn-sm" onclick="exportSupplierData()">
+                                        <i class="fas fa-download me-2"></i>Export Data
+                                    </button>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <hr class="my-2">
+                                        <a href="@Url.Action("Delete", new { id = Model.Id })" 
+                                           class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash me-2"></i>Delete Supplier
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showAllProducts(button) {
+            const table = document.getElementById('productsTable');
+            if (table) {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => row.style.display = '');
+            }
+            
+            // Update button states
+            updateButtonStates(button);
+        }
+        
+        function showActiveProducts(button) {
+            const table = document.getElementById('productsTable');
+            if (table) {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const isActive = row.getAttribute('data-active') === 'true';
+                    row.style.display = isActive ? '' : 'none';
+                });
+            }
+            
+            updateButtonStates(button);
+        }
+        
+        function showLowStockProducts(button) {
+            const table = document.getElementById('productsTable');
+            if (table) {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const isLowStock = row.getAttribute('data-low-stock') === 'true';
+                    row.style.display = isLowStock ? '' : 'none';
+                });
+            }
+            
+            updateButtonStates(button);
+        }
+        
+        function updateButtonStates(activeButton) {
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.replace('btn-primary', 'btn-outline-primary');
+                btn.classList.replace('btn-success', 'btn-outline-success');
+                btn.classList.replace('btn-warning', 'btn-outline-warning');
+            });
+            
+            activeButton.classList.add('active');
+            if (activeButton.classList.contains('btn-outline-primary')) {
+                activeButton.classList.replace('btn-outline-primary', 'btn-primary');
+            } else if (activeButton.classList.contains('btn-outline-success')) {
+                activeButton.classList.replace('btn-outline-success', 'btn-success');
+            } else if (activeButton.classList.contains('btn-outline-warning')) {
+                activeButton.classList.replace('btn-outline-warning', 'btn-warning');
+            }
+        }
+        
+        function exportSupplierData() {
+            // Simple CSV export
+            const data = @Html.Raw(Json.Serialize(Model.Products));
+            const csvContent = convertToCSV(data);
+            downloadCSV(csvContent, `supplier-${@Model.Id}-products.csv`);
+        }
+        
+        function convertToCSV(data) {
+            const headers = ['Product Name', 'SKU', 'Category', 'Price', 'Cost', 'Stock Quantity', 'Status'];
+            const csvRows = [headers.join(',')];
+            
+            data.forEach(item => {
+                const row = [
+                    `"${item.name}"`,
+                    `"${item.sku}"`,
+                    `"${item.categoryName || ''}"`,
+                    item.price.toFixed(2),
+                    item.cost ? item.cost.toFixed(2) : '',
+                    item.totalQuantity,
+                    item.isActive ? 'Active' : 'Inactive'
+                ];
+                csvRows.push(row.join(','));
+            });
+            
+            return csvRows.join('\n');
+        }
+        
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+    </script>
+}

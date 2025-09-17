@@ -1,0 +1,241 @@
+@model InventoryManagement.WebUI.ViewModels.Products.ProductIndexViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="page-header d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title">@Model.PageTitle</h2>
+                    <p class="text-muted">@Model.PageSubtitle</p>
+                </div>
+                @if (Model.CanCreateProducts)
+                {
+                    <div>
+                        <a href="@Url.Action("Create")" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Product
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="@Model.CurrentSearch" placeholder="Search by name or SKU...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="categoryId" class="form-label">Category</label>
+                            <select class="form-select" id="categoryId" name="categoryId">
+                                <option value="">All Categories</option>
+                                @foreach (var category in Model.Categories)
+                                {
+                                    <option value="@category.Id" selected="@(Model.CurrentCategoryId == category.Id)">
+                                        @category.Name
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="pageSize" class="form-label">Page Size</label>
+                            <select class="form-select" id="pageSize" name="pageSize">
+                                <option value="10" selected="@(Model.Products.PageSize == 10)">10</option>
+                                <option value="25" selected="@(Model.Products.PageSize == 25)">25</option>
+                                <option value="50" selected="@(Model.Products.PageSize == 50)">50</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="card">
+                <div class="card-body">
+                    @if (Model.Products.Items.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>SKU</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Stock Status</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var product in Model.Products.Items)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="product-info">
+                                                        <h6 class="mb-0">@product.Name</h6>
+                                                        @if (!string.IsNullOrEmpty(product.Description))
+                                                        {
+                                                            <small class="text-muted">@product.Description.Substring(0, Math.Min(50, product.Description.Length))@(product.Description.Length > 50 ? "..." : "")</small>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark font-monospace">@product.SKU</span>
+                                            </td>
+                                            <td>@product.CategoryName</td>
+                                            <td>
+                                                <strong>@product.Price.ToString("C")</strong>
+                                                @if (product.Cost.HasValue)
+                                                {
+                                                    <br><small class="text-muted">Cost: @product.Cost.Value.ToString("C")</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @* Stock status would be calculated from inventory *@
+                                                <span class="badge bg-success">In Stock</span>
+                                            </td>
+                                            <td>
+                                                @if (product.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="@Url.Action("Details", new { id = product.Id })" 
+                                                       class="btn btn-sm btn-outline-primary" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    @if (Model.CanManageProducts)
+                                                    {
+                                                        <a href="@Url.Action("Edit", new { id = product.Id })" 
+                                                           class="btn btn-sm btn-outline-warning" title="Edit">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <a href="@Url.Action("Delete", new { id = product.Id })" 
+                                                           class="btn btn-sm btn-outline-danger" title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        @if (Model.Products.TotalPages > 1)
+                        {
+                            <nav aria-label="Product pagination">
+                                <ul class="pagination justify-content-center">
+                                    @if (Model.Products.HasPreviousPage)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="@Url.Action("Index", new { 
+                                                page = Model.Products.PageNumber - 1, 
+                                                pageSize = Model.Products.PageSize,
+                                                search = Model.CurrentSearch,
+                                                categoryId = Model.CurrentCategoryId 
+                                            })">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    }
+
+                                    @for (int i = Math.Max(1, Model.Products.PageNumber - 2); i <= Math.Min(Model.Products.TotalPages, Model.Products.PageNumber + 2); i++)
+                                    {
+                                        <li class="page-item @(i == Model.Products.PageNumber ? "active" : "")">
+                                            <a class="page-link" href="@Url.Action("Index", new { 
+                                                page = i, 
+                                                pageSize = Model.Products.PageSize,
+                                                search = Model.CurrentSearch,
+                                                categoryId = Model.CurrentCategoryId 
+                                            })">@i</a>
+                                        </li>
+                                    }
+
+                                    @if (Model.Products.HasNextPage)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="@Url.Action("Index", new { 
+                                                page = Model.Products.PageNumber + 1, 
+                                                pageSize = Model.Products.PageSize,
+                                                search = Model.CurrentSearch,
+                                                categoryId = Model.CurrentCategoryId 
+                                            })">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </nav>
+                        }
+
+                        <div class="row mt-3">
+                            <div class="col-12 text-center text-muted">
+                                Showing @((Model.Products.PageNumber - 1) * Model.Products.PageSize + 1) to 
+                                @Math.Min(Model.Products.PageNumber * Model.Products.PageSize, Model.Products.TotalCount) 
+                                of @Model.Products.TotalCount products
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <h4>No products found</h4>
+                            <p class="text-muted">
+                                @if (!string.IsNullOrEmpty(Model.CurrentSearch) || Model.CurrentCategoryId.HasValue)
+                                {
+                                    <span>Try adjusting your search criteria or </span>
+                                    <a href="@Url.Action("Index")">clear filters</a>
+                                }
+                                else if (Model.CanCreateProducts)
+                                {
+                                    <span>Get started by </span>
+                                    <a href="@Url.Action("Create")">adding your first product</a>
+                                }
+                                else
+                                {
+                                    <span>No products have been added yet.</span>
+                                }
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-submit form when page size changes
+        document.getElementById('pageSize').addEventListener('change', function() {
+            this.form.submit();
+        });
+    </script>
+}

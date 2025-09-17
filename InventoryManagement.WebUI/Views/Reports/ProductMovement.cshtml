@@ -1,0 +1,568 @@
+@using Microsoft.AspNetCore.Html
+@model InventoryManagement.WebUI.ViewModels.Reports.ProductMovementReportViewModel
+@{
+    ViewData["Title"] = "Product Movement Report";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Product Movement Report
+                </h1>
+                <div class="d-flex align-items-center">
+                    <a href="@Url.Action("Dashboard", "Reports")" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Back to Dashboard
+                    </a>
+                    @if (Model.Items.Any())
+                    {
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+                            <i class="fas fa-download me-1"></i>
+                            Export Report
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Panel -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-filter me-2"></i>
+                        Analysis Period & Filters
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" asp-action="ProductMovement">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="Filter.StartDate" class="form-label">Analysis Start Date</label>
+                                <input asp-for="Filter.StartDate" class="form-control" type="date" />
+                                <div class="form-text">Default: 3 months ago</div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="Filter.EndDate" class="form-label">Analysis End Date</label>
+                                <input asp-for="Filter.EndDate" class="form-control" type="date" />
+                                <div class="form-text">Default: Today</div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="Filter.ProductIds" class="form-label">Products</label>
+                                <select asp-for="Filter.ProductIds" class="form-select select2-multiple" multiple="multiple">
+                                    @if (ViewBag.Products != null)
+                                    {
+                                        @foreach (var product in (SelectList)ViewBag.Products)
+                                        {
+                                            <option value="@product.Value">@product.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="Filter.CategoryIds" class="form-label">Categories</label>
+                                <select asp-for="Filter.CategoryIds" class="form-select select2-multiple" multiple="multiple">
+                                    @if (ViewBag.Categories != null)
+                                    {
+                                        @foreach (var category in (SelectList)ViewBag.Categories)
+                                        {
+                                            <option value="@category.Value">@category.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="Filter.MinTransactions" class="form-label">Min Transactions</label>
+                                <input asp-for="Filter.MinTransactions" class="form-control" type="number" min="0" />
+                                <div class="form-text">Filter by minimum activity</div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="Filter.MovementType" class="form-label">Activity Level</label>
+                                <select asp-for="Filter.MovementType" class="form-select">
+                                    <option value="">All Activity Levels</option>
+                                    <option value="High">High Activity (>20 transactions)</option>
+                                    <option value="Medium">Medium Activity (5-20 transactions)</option>
+                                    <option value="Low">Low Activity (1-4 transactions)</option>
+                                    <option value="None">No Activity (0 transactions)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end mb-3">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fas fa-search me-1"></i>
+                                    Analyze Movement
+                                </button>
+                                <a href="@Url.Action("ProductMovement", "Reports")" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>
+                                    Reset Filters
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movement Analytics Charts -->
+    <div class="row mb-4">
+        <!-- Top Movers Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-fire me-2"></i>
+                        Top Moving Products (By Transaction Volume)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-bar">
+                        <canvas id="topMoversChart" width="100%" height="50"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Movement Activity Overview -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Activity Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="activityChart" width="100%" height="50"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> High Activity
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-info"></i> Medium Activity
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-warning"></i> Low Activity
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-muted"></i> No Activity
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        Product Movement Analysis (@Model.TotalCount.ToString("N0") products)
+                    </h6>
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted me-3">
+                            Period: @(Model.Filter.StartDate?.ToString("MMM dd, yyyy") ?? "3 months ago") - @(Model.Filter.EndDate?.ToString("MMM dd, yyyy") ?? "Today")
+                        </span>
+                        <span class="text-muted me-3">Page @Model.PageNumber of @Model.TotalPages</span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Show @Model.PageSize
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?pageSize=10&pageNumber=1">10 per page</a></li>
+                                <li><a class="dropdown-item" href="?pageSize=25&pageNumber=1">25 per page</a></li>
+                                <li><a class="dropdown-item" href="?pageSize=50&pageNumber=1">50 per page</a></li>
+                                <li><a class="dropdown-item" href="?pageSize=100&pageNumber=1">100 per page</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.Items.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>
+                                            <a href="?sortBy=ProductName&sortDirection=@Model.GetNextSortDirection("ProductName")" class="text-decoration-none">
+                                                Product <i class="@Model.GetSortClass("ProductName")"></i>
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="?sortBy=ProductSKU&sortDirection=@Model.GetNextSortDirection("ProductSKU")" class="text-decoration-none">
+                                                SKU <i class="@Model.GetSortClass("ProductSKU")"></i>
+                                            </a>
+                                        </th>
+                                        <th>Category</th>
+                                        <th>
+                                            <a href="?sortBy=TotalTransactions&sortDirection=@Model.GetNextSortDirection("TotalTransactions")" class="text-decoration-none">
+                                                Total Transactions <i class="@Model.GetSortClass("TotalTransactions")"></i>
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="?sortBy=StockInQuantity&sortDirection=@Model.GetNextSortDirection("StockInQuantity")" class="text-decoration-none">
+                                                Stock In <i class="@Model.GetSortClass("StockInQuantity")"></i>
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="?sortBy=StockOutQuantity&sortDirection=@Model.GetNextSortDirection("StockOutQuantity")" class="text-decoration-none">
+                                                Stock Out <i class="@Model.GetSortClass("StockOutQuantity")"></i>
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="?sortBy=NetMovement&sortDirection=@Model.GetNextSortDirection("NetMovement")" class="text-decoration-none">
+                                                Net Movement <i class="@Model.GetSortClass("NetMovement")"></i>
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="?sortBy=CurrentStock&sortDirection=@Model.GetNextSortDirection("CurrentStock")" class="text-decoration-none">
+                                                Current Stock <i class="@Model.GetSortClass("CurrentStock")"></i>
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="?sortBy=Velocity&sortDirection=@Model.GetNextSortDirection("Velocity")" class="text-decoration-none">
+                                                Velocity <i class="@Model.GetSortClass("Velocity")"></i>
+                                            </a>
+                                        </th>
+                                        <th>Activity Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    @GetActivityIndicator(item.TransactionCount)
+                                                    <span class="ms-2">@item.ProductName</span>
+                                                </div>
+                                            </td>
+                                            <td><code>@item.ProductSKU</code></td>
+                                            <td>@item.CategoryName</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-primary">@item.TransactionCount</span>
+                                            </td>
+                                            <td class="text-end text-success">
+                                                +@item.TotalStockIn.ToString("N0")
+                                            </td>
+                                            <td class="text-end text-danger">
+                                                -@item.TotalStockOut.ToString("N0")
+                                            </td>
+                                            <td class="text-end @GetNetMovementClass(item.NetMovement)">
+                                                @GetNetMovementText(item.NetMovement)
+                                            </td>
+                                            <td class="text-end">
+                                                @item.CurrentStockLevel.ToString("N0")
+                                            </td>
+                                            <td class="text-end">
+                                                @if (item.MovementVelocity > 0)
+                                                {
+                                                    <span class="@GetVelocityClass(item.MovementVelocity)">
+                                                        @item.MovementVelocity.ToString("F1")
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td>@GetActivityLevelBadge(item.TransactionCount)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        @if (Model.TotalPages > 1)
+                        {
+                            <nav aria-label="Product movement report pagination">
+                                <ul class="pagination justify-content-center">
+                                    @if (Model.ShowFirst)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="?pageNumber=1&pageSize=@Model.PageSize">First</a>
+                                        </li>
+                                    }
+                                    @if (Model.ShowPrevious)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="?pageNumber=@(Model.PageNumber - 1)&pageSize=@Model.PageSize">Previous</a>
+                                        </li>
+                                    }
+
+                                    @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                                    {
+                                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                            <a class="page-link" href="?pageNumber=@i&pageSize=@Model.PageSize">@i</a>
+                                        </li>
+                                    }
+
+                                    @if (Model.ShowNext)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="?pageNumber=@(Model.PageNumber + 1)&pageSize=@Model.PageSize">Next</a>
+                                        </li>
+                                    }
+                                    @if (Model.ShowLast)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="?pageNumber=@Model.TotalPages&pageSize=@Model.PageSize">Last</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </nav>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No product movement data found</h5>
+                            <p class="text-muted">Try adjusting your analysis period or filters.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">Export Product Movement Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+                <div class="modal-body">
+                    <p>Export the current product movement analysis with applied filters.</p>
+                    
+                    <!-- Hidden fields to preserve filters -->
+                    <input type="hidden" asp-for="Filter.StartDate" />
+                    <input type="hidden" asp-for="Filter.EndDate" />
+                    <input type="hidden" asp-for="Filter.ProductIds" />
+                    <input type="hidden" asp-for="Filter.CategoryIds" />
+                    <input type="hidden" asp-for="Filter.MinTransactions" />
+                    <input type="hidden" asp-for="Filter.MovementType" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Export Format</label>
+                        <select name="format" class="form-select" required>
+                            <option value="csv">CSV (Excel Compatible)</option>
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="pdf">PDF Document</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-download me-1"></i>
+                        Export Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private IHtmlContent GetActivityIndicator(int transactions)
+    {
+        var (icon, color) = transactions switch
+        {
+            > 20 => ("fas fa-fire", "text-danger"),
+            > 5 => ("fas fa-circle", "text-success"),
+            > 0 => ("fas fa-circle", "text-warning"),
+            _ => ("fas fa-circle", "text-muted")
+        };
+
+        return new HtmlString($"<i class=\"{icon} {color}\"></i>");
+    }
+
+    private IHtmlContent GetActivityLevelBadge(int transactions)
+    {
+        var (badge, text) = transactions switch
+        {
+            > 20 => ("badge bg-danger", "High Activity"),
+            > 5 => ("badge bg-success", "Medium Activity"),
+            > 0 => ("badge bg-warning text-dark", "Low Activity"),
+            _ => ("badge bg-secondary", "No Activity")
+        };
+
+        return new HtmlString($"<span class=\"{badge}\">{text}</span>");
+    }
+
+    private string GetNetMovementClass(int netMovement)
+    {
+        return netMovement switch
+        {
+            > 0 => "text-success fw-bold",
+            < 0 => "text-danger fw-bold",
+            _ => "text-muted"
+        };
+    }
+
+    private string GetNetMovementText(int netMovement)
+    {
+        return netMovement switch
+        {
+            > 0 => $"+{netMovement:N0}",
+            < 0 => $"{netMovement:N0}",
+            _ => "0"
+        };
+    }
+
+    private string GetVelocityClass(decimal velocity)
+    {
+        return velocity switch
+        {
+            >= 10 => "text-danger fw-bold",
+            >= 5 => "text-warning fw-bold",
+            >= 1 => "text-success",
+            _ => "text-muted"
+        };
+    }
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.select2-multiple').select2({
+                placeholder: "Select options...",
+                allowClear: true
+            });
+
+            // Set default date range if not specified
+            if (!$('#Filter_StartDate').val()) {
+                var startDate = new Date();
+                startDate.setMonth(startDate.getMonth() - 3);
+                $('#Filter_StartDate').val(startDate.toISOString().split('T')[0]);
+            }
+            if (!$('#Filter_EndDate').val()) {
+                var endDate = new Date();
+                $('#Filter_EndDate').val(endDate.toISOString().split('T')[0]);
+            }
+
+            // Initialize charts
+            initializeTopMoversChart();
+            initializeActivityChart();
+        });
+
+        function initializeTopMoversChart() {
+            const ctx = document.getElementById('topMoversChart').getContext('2d');
+            
+            // Sample data - in real implementation, this would come from the model
+            const topMovers = @Html.Raw(Json.Serialize(Model.Items.Take(10).Select(x => new { 
+                name = x.ProductName, 
+                transactions = x.TransactionCount,
+                stockIn = x.TotalStockIn,
+                stockOut = x.TotalStockOut
+            })));
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topMovers.map(item => item.name),
+                    datasets: [{
+                        label: 'Stock In',
+                        data: topMovers.map(item => item.stockIn),
+                        backgroundColor: 'rgba(28, 200, 138, 0.8)',
+                    }, {
+                        label: 'Stock Out',
+                        data: topMovers.map(item => item.stockOut),
+                        backgroundColor: 'rgba(231, 74, 59, 0.8)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeActivityChart() {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            
+            // Calculate activity distribution
+            const highActivity = @Model.Items.Count(x => x.TransactionCount > 20);
+            const mediumActivity = @Model.Items.Count(x => x.TransactionCount > 5 && x.TransactionCount <= 20);
+            const lowActivity = @Model.Items.Count(x => x.TransactionCount > 0 && x.TransactionCount <= 5);
+            const noActivity = @Model.Items.Count(x => x.TransactionCount == 0);
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High Activity', 'Medium Activity', 'Low Activity', 'No Activity'],
+                    datasets: [{
+                        data: [highActivity, mediumActivity, lowActivity, noActivity],
+                        backgroundColor: ['#e74a3b', '#1cc88a', '#f6c23e', '#6c757d'],
+                        hoverBackgroundColor: ['#c0392b', '#17a673', '#f4b942', '#5a6268']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+    </script>
+}
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .chart-bar {
+            position: relative;
+            height: 20rem;
+            width: 100%;
+        }
+        .chart-pie {
+            position: relative;
+            height: 15rem;
+            width: 100%;
+        }
+        .select2-container {
+            width: 100% !important;
+        }
+        .activity-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+}

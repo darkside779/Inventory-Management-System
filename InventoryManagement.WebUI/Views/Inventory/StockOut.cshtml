@@ -1,0 +1,325 @@
+@model InventoryManagement.WebUI.ViewModels.Inventory.StockAdjustmentViewModel
+@{
+    ViewData["Title"] = "Stock Out";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="page-header mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Inventory")">Inventory</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Stock Out</li>
+                    </ol>
+                </nav>
+                <h1 class="page-title">
+                    <i class="fas fa-minus-circle text-warning me-2"></i>Stock Out
+                </h1>
+                <p class="text-muted">Remove stock from inventory for products in specific warehouses</p>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Stock Out Form -->
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-minus me-2"></i>Remove Stock Details
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form asp-action="StockOut" method="post" class="needs-validation" novalidate>
+                                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                                <!-- Product Selection -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label asp-for="ProductId" class="form-label">Product <span class="text-danger">*</span></label>
+                                        <select asp-for="ProductId" class="form-select" id="productSelect" required>
+                                            <option value="">Select a product...</option>
+                                        </select>
+                                        <span asp-validation-for="ProductId" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="WarehouseId" class="form-label">Warehouse <span class="text-danger">*</span></label>
+                                        <select asp-for="WarehouseId" class="form-select" id="warehouseSelect" required>
+                                            <option value="">Select a warehouse...</option>
+                                        </select>
+                                        <span asp-validation-for="WarehouseId" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Current Stock Info -->
+                                <div class="row mb-3" id="currentStockInfo" style="display: none;">
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong>Current Stock:</strong> <span id="currentQuantity">0</span> units
+                                            (<strong>Available:</strong> <span id="availableQuantity">0</span> units)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quantity Input -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label asp-for="AdjustmentQuantity" class="form-label">Quantity to Remove <span class="text-danger">*</span></label>
+                                        <input asp-for="AdjustmentQuantity" type="number" class="form-control" min="1" step="1" required placeholder="Enter quantity to remove" max="0" id="quantityInput">
+                                        <span asp-validation-for="AdjustmentQuantity" class="text-danger"></span>
+                                        <div class="form-text">Enter the number of units to remove from inventory</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="ReferenceNumber" class="form-label">Reference Number</label>
+                                        <input asp-for="ReferenceNumber" type="text" class="form-control" placeholder="Sales Order, Work Order, etc.">
+                                        <span asp-validation-for="ReferenceNumber" class="text-danger"></span>
+                                        <div class="form-text">Sales order, work order, or dispatch number</div>
+                                    </div>
+                                </div>
+
+                                <!-- Reason -->
+                                <div class="mb-3">
+                                    <label asp-for="Reason" class="form-label">Reason</label>
+                                    <textarea asp-for="Reason" class="form-control" rows="3" placeholder="Sales, production use, damaged goods, etc.">Stock Out</textarea>
+                                    <span asp-validation-for="Reason" class="text-danger"></span>
+                                    <div class="form-text">Provide details about why stock is being removed</div>
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="d-flex justify-content-between">
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-1"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-warning" id="submitBtn" disabled>
+                                        <i class="fas fa-minus me-1"></i>Remove Stock
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Guidelines Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Stock Out Guidelines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-warning me-2"></i>
+                                    Check available stock before removing
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-warning me-2"></i>
+                                    Cannot remove more than available stock
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-warning me-2"></i>
+                                    Include reference numbers for tracking
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-warning me-2"></i>
+                                    Verify product and warehouse selection
+                                </li>
+                                <li class="mb-0">
+                                    <i class="fas fa-check text-warning me-2"></i>
+                                    Provide clear reasons for audit trails
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-chart-line me-1"></i>Current Stock
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="productStats" style="display: none;">
+                                <div class="text-center">
+                                    <div class="mb-2">
+                                        <span class="h4" id="totalStock">0</span>
+                                        <div class="text-muted small">Total Stock</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="h5" id="availableStock">0</span>
+                                        <div class="text-muted small">Available</div>
+                                    </div>
+                                    <div class="mb-0">
+                                        <span class="h6" id="reservedStock">0</span>
+                                        <div class="text-muted small">Reserved</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="noProductSelected">
+                                <p class="text-muted text-center mb-0">
+                                    <i class="fas fa-box me-1"></i>
+                                    Select a product to view stock
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Alert -->
+                    <div id="stockAlert" class="alert alert-warning mt-3" style="display: none;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Low Stock Warning:</strong> This product is below minimum stock level.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Load products and warehouses
+            loadProducts();
+            loadWarehouses();
+            
+            // Handle product selection change
+            $('#productSelect').change(function() {
+                var productId = $(this).val();
+                var warehouseId = $('#warehouseSelect').val();
+                
+                if (productId && warehouseId) {
+                    loadCurrentStock(productId, warehouseId);
+                } else {
+                    hideStockInfo();
+                }
+            });
+            
+            // Handle warehouse selection change
+            $('#warehouseSelect').change(function() {
+                var productId = $('#productSelect').val();
+                var warehouseId = $(this).val();
+                
+                if (productId && warehouseId) {
+                    loadCurrentStock(productId, warehouseId);
+                } else {
+                    hideStockInfo();
+                }
+            });
+            
+            // Handle quantity input validation
+            $('#quantityInput').on('input', function() {
+                var quantity = parseInt($(this).val()) || 0;
+                var available = parseInt($('#availableQuantity').text()) || 0;
+                var submitBtn = $('#submitBtn');
+                
+                if (quantity > 0 && quantity <= available) {
+                    submitBtn.prop('disabled', false);
+                    $(this).removeClass('is-invalid');
+                } else {
+                    submitBtn.prop('disabled', true);
+                    if (quantity > available) {
+                        $(this).addClass('is-invalid');
+                    }
+                }
+            });
+        });
+        
+        function loadProducts() {
+            $.get('/api/products/lookup')
+                .done(function(data) {
+                    var select = $('#productSelect');
+                    select.empty().append('<option value="">Select a product...</option>');
+                    
+                    if (data && data.length > 0) {
+                        $.each(data, function(i, product) {
+                            select.append('<option value="' + product.id + '">' + product.name + ' (' + product.sku + ')</option>');
+                        });
+                    }
+                })
+                .fail(function() {
+                    console.warn('Failed to load products');
+                });
+        }
+        
+        function loadWarehouses() {
+            $.get('/api/warehouses/lookup')
+                .done(function(data) {
+                    var select = $('#warehouseSelect');
+                    select.empty().append('<option value="">Select a warehouse...</option>');
+                    
+                    if (data && data.length > 0) {
+                        $.each(data, function(i, warehouse) {
+                            select.append('<option value="' + warehouse.id + '">' + warehouse.name + '</option>');
+                        });
+                    }
+                })
+                .fail(function() {
+                    console.warn('Failed to load warehouses');
+                });
+        }
+        
+        function loadCurrentStock(productId, warehouseId) {
+            $.get('/Inventory/GetByProduct/' + productId)
+                .done(function(response) {
+                    if (response.success && response.data) {
+                        var inventory = response.data.find(i => i.warehouseId == warehouseId);
+                        if (inventory) {
+                            showStockInfo(inventory.quantity, inventory.availableQuantity, inventory.reservedQuantity || 0, inventory.minimumStockLevel || 0);
+                        } else {
+                            showStockInfo(0, 0, 0, 0);
+                        }
+                    } else {
+                        showStockInfo(0, 0, 0, 0);
+                    }
+                })
+                .fail(function() {
+                    hideStockInfo();
+                });
+        }
+        
+        function showStockInfo(current, available, reserved, minimum) {
+            $('#currentQuantity').text(current);
+            $('#availableQuantity').text(available);
+            $('#totalStock').text(current);
+            $('#availableStock').text(available);
+            $('#reservedStock').text(reserved);
+            
+            // Update quantity input max value
+            $('#quantityInput').attr('max', available);
+            
+            // Show/hide stock alert
+            if (current <= minimum && minimum > 0) {
+                $('#stockAlert').show();
+            } else {
+                $('#stockAlert').hide();
+            }
+            
+            $('#currentStockInfo').show();
+            $('#productStats').show();
+            $('#noProductSelected').hide();
+            
+            // Enable/disable submit button based on available stock
+            var submitBtn = $('#submitBtn');
+            if (available > 0) {
+                submitBtn.prop('disabled', false);
+            } else {
+                submitBtn.prop('disabled', true);
+            }
+        }
+        
+        function hideStockInfo() {
+            $('#currentStockInfo').hide();
+            $('#productStats').hide();
+            $('#noProductSelected').show();
+            $('#stockAlert').hide();
+            $('#submitBtn').prop('disabled', true);
+        }
+    </script>
+}

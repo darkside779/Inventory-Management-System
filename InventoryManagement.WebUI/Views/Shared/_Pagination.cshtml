@@ -1,0 +1,107 @@
+@model InventoryManagement.WebUI.ViewModels.PagedViewModel<object>
+
+@if (Model.TotalPages > 1)
+{
+    <nav aria-label="Page navigation">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="pagination-info">
+                <small class="text-muted">
+                    Showing @Model.StartItem to @Model.EndItem of @Model.TotalCount entries
+                </small>
+            </div>
+            
+            <ul class="pagination pagination-sm mb-0">
+                @* Previous button *@
+                <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                    <a class="page-link" href="@GetPageUrl(Model.PageNumber - 1)" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+
+                @* Page numbers *@
+                @{
+                    var startPage = Math.Max(1, Model.PageNumber - 2);
+                    var endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                    
+                    // Show first page if we're not starting from 1
+                    if (startPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@GetPageUrl(1)">1</a>
+                        </li>
+                        if (startPage > 2)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                    }
+                    
+                    // Show page range
+                    for (var i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <a class="page-link" href="@GetPageUrl(i)">@i</a>
+                        </li>
+                    }
+                    
+                    // Show last page if we're not ending at the last page
+                    if (endPage < Model.TotalPages)
+                    {
+                        if (endPage < Model.TotalPages - 1)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link" href="@GetPageUrl(Model.TotalPages)">@Model.TotalPages</a>
+                        </li>
+                    }
+                }
+
+                @* Next button *@
+                <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                    <a class="page-link" href="@GetPageUrl(Model.PageNumber + 1)" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+}
+
+@functions {
+    private string GetPageUrl(int pageNumber)
+    {
+        var queryParams = new Dictionary<string, string?>
+        {
+            ["page"] = pageNumber.ToString(),
+            ["size"] = Model.PageSize.ToString()
+        };
+
+        if (!string.IsNullOrEmpty(Model.SearchTerm))
+        {
+            queryParams["search"] = Model.SearchTerm;
+        }
+
+        if (!string.IsNullOrEmpty(Model.SortBy))
+        {
+            queryParams["sortBy"] = Model.SortBy;
+            queryParams["sortDir"] = Model.SortDirection;
+        }
+
+        // Add any additional filters
+        foreach (var filter in Model.Filters)
+        {
+            queryParams[filter.Key] = filter.Value;
+        }
+
+        var queryString = string.Join("&", queryParams
+            .Where(kv => !string.IsNullOrEmpty(kv.Value))
+            .Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value!)}"));
+
+        var currentPath = ViewContext.HttpContext.Request.Path;
+        return $"{currentPath}?{queryString}";
+    }
+}

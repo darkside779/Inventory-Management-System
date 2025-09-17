@@ -1,0 +1,73 @@
+@* Breadcrumb navigation component *@
+
+@if (ViewBag.BreadcrumbItems != null)
+{
+    var breadcrumbItems = ViewBag.BreadcrumbItems as (string text, string? url)[];
+    
+    if (breadcrumbItems != null && breadcrumbItems.Length > 0)
+    {
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-controller="Home" asp-action="Index">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                </li>
+                
+                @for (int i = 0; i < breadcrumbItems.Length; i++)
+                {
+                    var item = breadcrumbItems[i];
+                    var isLast = i == breadcrumbItems.Length - 1;
+                    
+                    if (isLast)
+                    {
+                        <li class="breadcrumb-item active" aria-current="page">
+                            @item.text
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="breadcrumb-item">
+                            @if (!string.IsNullOrEmpty(item.url))
+                            {
+                                <a href="@item.url">@item.text</a>
+                            }
+                            else
+                            {
+                                @item.text
+                            }
+                        </li>
+                    }
+                }
+            </ol>
+        </nav>
+    }
+}
+
+<style>
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0.5rem 0;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: ">";
+        color: #6c757d;
+    }
+    
+    .breadcrumb-item a {
+        color: #0d6efd;
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: #0a58ca;
+        text-decoration: underline;
+    }
+    
+    .breadcrumb-item.active {
+        color: #6c757d;
+    }
+</style>

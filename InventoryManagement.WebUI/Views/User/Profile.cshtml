@@ -1,0 +1,325 @@
+@model InventoryManagement.WebUI.ViewModels.Users.UserProfileViewModel
+@using InventoryManagement.Domain.Enums
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-circle"></i> My Profile
+        </h1>
+    </div>
+
+    <div class="row">
+        <!-- Profile Form -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user-edit"></i> Profile Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Profile" method="post" novalidate>
+                        <input type="hidden" asp-for="Id" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Username" class="form-label">
+                                        <i class="fas fa-at text-muted"></i> Username
+                                    </label>
+                                    <input asp-for="Username" class="form-control" readonly />
+                                    <small class="form-text text-muted">
+                                        Username cannot be changed. Contact administrator if needed.
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="fas fa-envelope text-muted"></i> Email Address <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Email" class="form-control" placeholder="Enter email address" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="FullName" class="form-label">
+                                <i class="fas fa-user text-muted"></i> Full Name <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="FullName" class="form-control" placeholder="Enter full name" />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="PhoneNumber" class="form-label">
+                                <i class="fas fa-phone text-muted"></i> Phone Number
+                            </label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="Enter phone number (optional)" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <hr>
+
+                        <div class="form-group mb-0">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Profile
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-home"></i> Back to Dashboard
+                            </a>
+                            <a asp-action="ChangePassword" asp-route-id="@Model.Id" class="btn btn-warning">
+                                <i class="fas fa-key"></i> Change Password
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Information Sidebar -->
+        <div class="col-lg-4">
+            <!-- Account Summary -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-id-card"></i> Account Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="avatar-circle bg-primary text-white mx-auto mb-2" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                        <h5 class="mb-1">@Model.FullName</h5>
+                        <p class="text-muted mb-0">@Model.Username</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong class="text-muted">Role:</strong><br>
+                        @GetRoleBadge(Model.Role)
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="text-muted">Member Since:</strong><br>
+                        <span class="text-dark">@Model.CreatedAt.ToString("MMMM yyyy")</span>
+                    </div>
+                    
+                    @if (Model.LastLoginAt.HasValue)
+                    {
+                        <div class="mb-3">
+                            <strong class="text-muted">Last Login:</strong><br>
+                            <span class="text-dark">@Model.LastLoginAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-shield-alt"></i> Security Settings
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-dark">
+                            <i class="fas fa-key text-warning mr-2"></i> Password
+                        </h6>
+                        <p class="small text-muted mb-2">
+                            Protect your account with a strong password.
+                        </p>
+                        <a asp-action="ChangePassword" asp-route-id="@Model.Id" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-edit"></i> Change Password
+                        </a>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-dark">
+                            <i class="fas fa-envelope text-info mr-2"></i> Email Notifications
+                        </h6>
+                        <p class="small text-muted mb-2">
+                            Manage how you receive notifications.
+                        </p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                            <label class="form-check-label small" for="emailNotifications">
+                                Receive email notifications
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-user-tag"></i> Role & Permissions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong class="text-muted">Current Role:</strong><br>
+                        @GetRoleBadge(Model.Role)
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="text-muted">Your Permissions:</strong><br>
+                        @GetRolePermissions(Model.Role)
+                    </div>
+                    
+                    <small class="text-muted">
+                        Need different permissions? Contact your administrator.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    Microsoft.AspNetCore.Html.IHtmlContent GetRoleBadge(UserRole role)
+    {
+        var badgeClass = role switch
+        {
+            UserRole.Administrator => "badge-danger",
+            UserRole.Manager => "badge-warning",
+            UserRole.Staff => "badge-info",
+            _ => "badge-secondary"
+        };
+
+        var icon = role switch
+        {
+            UserRole.Administrator => "fas fa-user-shield",
+            UserRole.Manager => "fas fa-user-tie",
+            UserRole.Staff => "fas fa-user",
+            _ => "fas fa-user"
+        };
+
+        return Html.Raw($"<span class=\"badge badge-pill {badgeClass} p-2\"><i class=\"{icon}\"></i> {role}</span>");
+    }
+
+    Microsoft.AspNetCore.Html.IHtmlContent GetRolePermissions(UserRole role)
+    {
+        var permissions = role switch
+        {
+            UserRole.Administrator => new[] { 
+                "Full system access", 
+                "User management", 
+                "System configuration", 
+                "All module access", 
+                "Reports and analytics" 
+            },
+            UserRole.Manager => new[] { 
+                "Inventory management", 
+                "Reports and analytics", 
+                "Staff supervision", 
+                "Transaction oversight" 
+            },
+            UserRole.Staff => new[] { 
+                "Transaction processing", 
+                "Basic inventory operations", 
+                "Personal profile management" 
+            },
+            _ => new[] { "No permissions assigned" }
+        };
+
+        var html = "<ul class=\"list-unstyled mb-0\">";
+        foreach (var permission in permissions)
+        {
+            html += $"<li class=\"small text-muted\"><i class=\"fas fa-check text-success mr-1\"></i> {permission}</li>";
+        }
+        html += "</ul>";
+
+        return Html.Raw(html);
+    }
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Email format validation
+            $('#Email').on('blur', function() {
+                var email = $(this).val();
+                if (email && !isValidEmail(email)) {
+                    showFieldError('Email', 'Please enter a valid email address.');
+                } else {
+                    clearFieldError('Email');
+                }
+            });
+
+            // Auto-save draft (simulated)
+            var formFields = ['Email', 'FullName', 'PhoneNumber'];
+            formFields.forEach(function(field) {
+                $(`#${field}`).on('input', function() {
+                    saveDraft();
+                });
+            });
+        });
+
+        function isValidEmail(email) {
+            var regex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            return regex.test(email);
+        }
+
+        function showFieldError(fieldName, message) {
+            var field = $(`#${fieldName}`);
+            var errorSpan = field.siblings('.text-danger');
+            
+            field.addClass('is-invalid');
+            if (errorSpan.length > 0) {
+                errorSpan.text(message);
+            } else {
+                field.after(`<span class="text-danger">${message}</span>`);
+            }
+        }
+
+        function clearFieldError(fieldName) {
+            var field = $(`#${fieldName}`);
+            field.removeClass('is-invalid');
+            field.siblings('.text-danger').text('');
+        }
+
+        function saveDraft() {
+            // Simulate auto-save draft functionality
+            var formData = {
+                email: $('#Email').val(),
+                fullName: $('#FullName').val(),
+                phoneNumber: $('#PhoneNumber').val()
+            };
+            
+            localStorage.setItem('profileDraft', JSON.stringify(formData));
+            
+            // Show brief save indicator
+            if (!$('#saveIndicator').length) {
+                $('form').prepend('<div id="saveIndicator" class="alert alert-info alert-dismissible fade show" role="alert" style="display: none;"><i class="fas fa-save"></i> Draft saved automatically <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>');
+            }
+            
+            $('#saveIndicator').slideDown().delay(2000).slideUp();
+        }
+
+        // Load draft on page load
+        $(document).ready(function() {
+            var draft = localStorage.getItem('profileDraft');
+            if (draft) {
+                var formData = JSON.parse(draft);
+                // Don't overwrite existing data, just show that draft exists
+                console.log('Draft available:', formData);
+            }
+        });
+
+        // Clear draft on successful save
+        $('form').on('submit', function() {
+            localStorage.removeItem('profileDraft');
+        });
+    </script>
+}

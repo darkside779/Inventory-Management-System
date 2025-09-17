@@ -1,0 +1,367 @@
+@{
+    // Chart.js utility functions and configurations for reports
+}
+
+<script>
+    // Global chart configuration
+    Chart.defaults.font.family = '"Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+    Chart.defaults.color = '#858796';
+
+    // Chart color palettes
+    const ChartColors = {
+        primary: '#4e73df',
+        success: '#1cc88a', 
+        info: '#36b9cc',
+        warning: '#f6c23e',
+        danger: '#e74a3b',
+        secondary: '#858796',
+        light: '#f8f9fc',
+        dark: '#5a5c69'
+    };
+
+    const ChartGradients = {
+        primary: 'rgba(78, 115, 223, 0.1)',
+        success: 'rgba(28, 200, 138, 0.1)',
+        info: 'rgba(54, 185, 204, 0.1)', 
+        warning: 'rgba(246, 194, 62, 0.1)',
+        danger: 'rgba(231, 74, 59, 0.1)'
+    };
+
+    // Utility functions
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        }).format(value);
+    }
+
+    function formatNumber(value) {
+        return new Intl.NumberFormat('en-US').format(value);
+    }
+
+    function formatPercentage(value) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'percent',
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
+        }).format(value / 100);
+    }
+
+    // Create responsive line chart
+    function createLineChart(canvas, data, options = {}) {
+        const defaultOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            elements: {
+                point: {
+                    radius: 3,
+                    hoverRadius: 6
+                },
+                line: {
+                    tension: 0.3
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(234, 236, 244, 1)',
+                        zeroLineColor: 'rgba(234, 236, 244, 1)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return formatNumber(value);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255,255,255,.8)',
+                    titleColor: '#6e707e',
+                    bodyColor: '#6e707e',
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    callbacks: {
+                        afterLabel: function(context) {
+                            return '';
+                        }
+                    }
+                }
+            }
+        };
+
+        const mergedOptions = { ...defaultOptions, ...options };
+        
+        return new Chart(canvas, {
+            type: 'line',
+            data: data,
+            options: mergedOptions
+        });
+    }
+
+    // Create responsive bar chart
+    function createBarChart(canvas, data, options = {}) {
+        const defaultOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(234, 236, 244, 1)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return formatNumber(value);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255,255,255,.8)',
+                    titleColor: '#6e707e',
+                    bodyColor: '#6e707e',
+                    borderColor: '#dddfeb',
+                    borderWidth: 1
+                }
+            }
+        };
+
+        const mergedOptions = { ...defaultOptions, ...options };
+        
+        return new Chart(canvas, {
+            type: 'bar',
+            data: data,
+            options: mergedOptions
+        });
+    }
+
+    // Create responsive doughnut chart
+    function createDoughnutChart(canvas, data, options = {}) {
+        const defaultOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255,255,255,.8)',
+                    titleColor: '#6e707e',
+                    bodyColor: '#6e707e',
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${formatNumber(value)} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        };
+
+        const mergedOptions = { ...defaultOptions, ...options };
+        
+        return new Chart(canvas, {
+            type: 'doughnut',
+            data: data,
+            options: mergedOptions
+        });
+    }
+
+    // Create KPI animation
+    function animateKPI(element, targetValue, duration = 1000, iscurrency = false, isPercentage = false) {
+        let startValue = 0;
+        let startTime = null;
+
+        function animate(currentTime) {
+            if (startTime === null) startTime = currentTime;
+            const timeElapsed = currentTime - startTime;
+            const progress = Math.min(timeElapsed / duration, 1);
+            
+            const currentValue = startValue + (targetValue - startValue) * easeOutQuart(progress);
+            
+            if (isPercentage) {
+                element.textContent = formatPercentage(currentValue);
+            } else if (isurrency) {
+                element.textContent = formatCurrency(currentValue);
+            } else {
+                element.textContent = formatNumber(Math.floor(currentValue));
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                if (isPercentage) {
+                    element.textContent = formatPercentage(targetValue);
+                } else if (isCurrency) {
+                    element.textContent = formatCurrency(targetValue);
+                } else {
+                    element.textContent = formatNumber(targetValue);
+                }
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    // Easing function
+    function easeOutQuart(t) {
+        return 1 - (--t) * t * t * t;
+    }
+
+    // Generate sample data for demos
+    function generateSampleLineData(points, min = 0, max = 100, labels = null) {
+        const data = [];
+        const generatedLabels = labels || Array.from({length: points}, (_, i) => `Point ${i + 1}`);
+        
+        for (let i = 0; i < points; i++) {
+            data.push(Math.floor(Math.random() * (max - min + 1)) + min);
+        }
+        
+        return {
+            labels: generatedLabels,
+            datasets: [{
+                data: data,
+                borderColor: ChartColors.primary,
+                backgroundColor: ChartGradients.primary,
+                fill: true
+            }]
+        };
+    }
+
+    function generateSampleBarData(categories, min = 0, max = 100) {
+        const data = categories.map(() => Math.floor(Math.random() * (max - min + 1)) + min);
+        
+        return {
+            labels: categories,
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    ChartColors.primary,
+                    ChartColors.success,
+                    ChartColors.warning,
+                    ChartColors.danger,
+                    ChartColors.info
+                ],
+                hoverBackgroundColor: [
+                    ChartColors.primary,
+                    ChartColors.success,
+                    ChartColors.warning,
+                    ChartColors.danger,
+                    ChartColors.info
+                ]
+            }]
+        };
+    }
+
+    // Chart refresh utility
+    function refreshChart(chart, newData) {
+        if (chart && newData) {
+            chart.data = newData;
+            chart.update('active');
+        }
+    }
+
+    // Export chart as image
+    function exportChartAsImage(chart, filename = 'chart.png') {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = chart.toBase64Image();
+        link.click();
+    }
+
+    // Responsive chart resize handler
+    function handleChartResize() {
+        Chart.helpers.each(Chart.instances, function(chart) {
+            chart.resize();
+        });
+    }
+
+    // Add resize listener
+    window.addEventListener('resize', handleChartResize);
+</script>
+
+<style>
+    /* Chart container styles */
+    .chart-container {
+        position: relative;
+        height: 400px;
+        width: 100%;
+    }
+
+    .chart-small {
+        height: 200px;
+    }
+
+    .chart-medium {
+        height: 300px;
+    }
+
+    .chart-large {
+        height: 500px;
+    }
+
+    /* KPI animation styles */
+    .kpi-value {
+        transition: all 0.3s ease;
+    }
+
+    .kpi-value.loading {
+        opacity: 0.6;
+    }
+
+    /* Chart loading overlay */
+    .chart-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+    }
+
+    .chart-loading .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    /* Chart export button */
+    .chart-export {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+    }
+
+    /* Responsive chart styles */
+    @@media (max-width: 768px) {
+        .chart-container {
+            height: 250px;
+        }
+    }
+</style>

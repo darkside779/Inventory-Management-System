@@ -1,0 +1,271 @@
+@model InventoryManagement.WebUI.ViewModels.Warehouses.DeleteWarehouseViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8 col-xl-6 mx-auto">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>@Model.PageTitle
+                            </h4>
+                            <p class="mb-0 opacity-75">This action cannot be undone</p>
+                        </div>
+                        <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-light">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Details
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Warning Alert -->
+                    <div class="alert alert-danger">
+                        <div class="d-flex">
+                            <i class="fas fa-exclamation-circle fa-2x me-3 text-danger"></i>
+                            <div>
+                                <h6 class="alert-heading">Delete Confirmation Required</h6>
+                                <p class="mb-0">
+                                    You are about to permanently delete the warehouse "<strong>@Model.Name</strong>". 
+                                    This action will deactivate the warehouse and cannot be reversed.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warehouse Information -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-warehouse me-2"></i>Warehouse Details
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Warehouse Name</label>
+                                    <div class="fw-semibold">@Model.Name</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Location</label>
+                                    <div class="fw-semibold">@Model.Location</div>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(Model.Address))
+                                {
+                                    <div class="col-12">
+                                        <label class="form-label text-muted small">Address</label>
+                                        <div class="fw-semibold">@Model.Address</div>
+                                    </div>
+                                }
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Status</label>
+                                    <div>
+                                        @if (Model.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Active
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times me-1"></i>Inactive
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Created Date</label>
+                                    <div class="fw-semibold">@Model.CreatedAt.ToString("MMMM dd, yyyy")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Impact Assessment -->
+                    @if (Model.HasActiveInventory || Model.HasRecentTransactions || Model.TotalInventoryValue > 0)
+                    {
+                        <div class="alert alert-warning">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Impact Assessment
+                            </h6>
+                            <div class="row g-2 mb-2">
+                                @if (Model.HasActiveInventory)
+                                {
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-boxes text-warning me-2"></i>
+                                            <span><strong>Active Inventory:</strong> This warehouse contains active inventory items</span>
+                                        </div>
+                                    </div>
+                                }
+                                @if (Model.HasRecentTransactions)
+                                {
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-exchange-alt text-warning me-2"></i>
+                                            <span><strong>Recent Activity:</strong> Recent transactions have occurred in this warehouse</span>
+                                        </div>
+                                    </div>
+                                }
+                                @if (Model.TotalInventoryValue > 0)
+                                {
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-dollar-sign text-warning me-2"></i>
+                                            <span><strong>Inventory Value:</strong> $@Model.TotalInventoryValue.ToString("N2") worth of inventory</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <p class="mb-0 mt-2">
+                                <strong>Recommendation:</strong> Consider transferring inventory and reviewing transactions before deleting this warehouse.
+                            </p>
+                        </div>
+                    }
+
+                    <!-- Deletion Process Information -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>What happens when you delete this warehouse?
+                        </h6>
+                        <ul class="mb-0">
+                            <li>The warehouse will be <strong>deactivated</strong> and marked as deleted</li>
+                            <li>It will no longer appear in active warehouse lists</li>
+                            <li>Associated inventory items will be preserved for historical records</li>
+                            <li>Transaction history will remain intact</li>
+                            <li>This action cannot be undone through the interface</li>
+                        </ul>
+                    </div>
+
+                    <!-- Confirmation Form -->
+                    <form asp-action="Delete" method="post" id="deleteForm" class="mt-4">
+                        @Html.AntiForgeryToken()
+                        <input asp-for="Id" type="hidden">
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label fw-semibold" for="confirmDelete">
+                                I understand the consequences and want to permanently delete this warehouse
+                            </label>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label for="confirmationText" class="form-label">
+                                Type <code>@Model.Name</code> to confirm deletion:
+                            </label>
+                            <input type="text" class="form-control" id="confirmationText" 
+                                   placeholder="Enter warehouse name to confirm" required>
+                            <div class="invalid-feedback" id="confirmationError">
+                                Warehouse name does not match
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                <i class="fas fa-trash-alt me-2"></i>Delete Warehouse
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Additional Safety Information -->
+            <div class="alert alert-secondary mt-3">
+                <small>
+                    <i class="fas fa-shield-alt me-2"></i>
+                    <strong>Data Protection:</strong> This system follows data retention policies. 
+                    Deleted warehouses are deactivated but historical data is preserved for audit purposes.
+                    Contact your system administrator if you need to restore a deleted warehouse.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteForm = document.getElementById('deleteForm');
+            const confirmCheckbox = document.getElementById('confirmDelete');
+            const confirmationText = document.getElementById('confirmationText');
+            const deleteButton = document.getElementById('deleteButton');
+            const confirmationError = document.getElementById('confirmationError');
+            const expectedName = '@Model.Name';
+            
+            function validateForm() {
+                const isChecked = confirmCheckbox.checked;
+                const textMatches = confirmationText.value.trim() === expectedName;
+                
+                // Update button state
+                deleteButton.disabled = !(isChecked && textMatches);
+                
+                // Update text input validation
+                if (confirmationText.value.trim() !== '' && !textMatches) {
+                    confirmationText.classList.add('is-invalid');
+                    confirmationText.classList.remove('is-valid');
+                } else if (textMatches) {
+                    confirmationText.classList.remove('is-invalid');
+                    confirmationText.classList.add('is-valid');
+                } else {
+                    confirmationText.classList.remove('is-invalid', 'is-valid');
+                }
+            }
+            
+            // Event listeners
+            confirmCheckbox.addEventListener('change', validateForm);
+            confirmationText.addEventListener('input', validateForm);
+            
+            // Form submission validation
+            deleteForm.addEventListener('submit', function(event) {
+                if (!confirmCheckbox.checked) {
+                    event.preventDefault();
+                    alert('Please confirm that you understand the consequences of deletion.');
+                    return false;
+                }
+                
+                if (confirmationText.value.trim() !== expectedName) {
+                    event.preventDefault();
+                    confirmationText.focus();
+                    confirmationText.classList.add('is-invalid');
+                    return false;
+                }
+                
+                // Final confirmation dialog
+                const confirmed = confirm(`Are you absolutely sure you want to delete the warehouse "${expectedName}"?\n\nThis action cannot be undone.`);
+                if (!confirmed) {
+                    event.preventDefault();
+                    return false;
+                }
+                
+                // Show loading state
+                deleteButton.disabled = true;
+                deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+            });
+            
+            // Warning on page leave
+            let formModified = false;
+            confirmCheckbox.addEventListener('change', () => formModified = true);
+            confirmationText.addEventListener('input', () => formModified = true);
+            
+            window.addEventListener('beforeunload', function(event) {
+                if (formModified && !deleteForm.submitted) {
+                    event.preventDefault();
+                    event.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                }
+            });
+            
+            deleteForm.addEventListener('submit', function() {
+                formModified = false;
+                deleteForm.submitted = true;
+            });
+        });
+    </script>
+}

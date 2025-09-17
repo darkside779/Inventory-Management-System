@@ -1,0 +1,427 @@
+@model InventoryManagement.WebUI.ViewModels.Users.UserIndexViewModel
+@using InventoryManagement.Domain.Enums
+
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-users"></i> User Management
+        </h1>
+        @if (User.IsInRole("Administrator"))
+        {
+            <a asp-action="Create" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-user-plus fa-sm text-white-50"></i> Add New User
+            </a>
+        }
+    </div>
+
+    <!-- Filter Panel -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter"></i> Filters
+                <button class="btn btn-sm btn-outline-primary float-right" type="button" data-toggle="collapse" data-target="#filterPanel">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </h6>
+        </div>
+        <div class="collapse show" id="filterPanel">
+            <div class="card-body">
+                <form asp-action="Index" method="get" id="filterForm">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label asp-for="Filter.SearchTerm">Search</label>
+                                <input asp-for="Filter.SearchTerm" class="form-control" placeholder="Name, username, or email..." />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label asp-for="Filter.Role">Role</label>
+                                <select asp-for="Filter.Role" asp-items="Model.RoleOptions" class="form-control">
+                                    <option value="">All Roles</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label asp-for="Filter.IsActive">Status</label>
+                                <select asp-for="Filter.IsActive" class="form-control">
+                                    <option value="">All Status</option>
+                                    <option value="true">Active</option>
+                                    <option value="false">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label asp-for="Filter.CreatedFrom">Created From</label>
+                                <input asp-for="Filter.CreatedFrom" class="form-control" type="date" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label asp-for="Filter.CreatedTo">Created To</label>
+                                <input asp-for="Filter.CreatedTo" class="form-control" type="date" />
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <div class="form-check">
+                                    <input asp-for="Filter.HasRecentLogin" class="form-check-input" />
+                                    <label asp-for="Filter.HasRecentLogin" class="form-check-label">
+                                        Recent Login
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-search"></i> Filter
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                            <div class="float-right">
+                                <select asp-for="Filter.PageSize" class="form-control form-control-sm d-inline-block w-auto" onchange="document.getElementById('filterForm').submit();">
+                                    <option value="10">10 per page</option>
+                                    <option value="25">25 per page</option>
+                                    <option value="50">50 per page</option>
+                                    <option value="100">100 per page</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Hidden fields for sorting -->
+                    <input type="hidden" asp-for="Filter.SortBy" />
+                    <input type="hidden" asp-for="Filter.SortDirection" />
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-table"></i> Users (@Model.Users.TotalCount)
+            </h6>
+        </div>
+        <div class="card-body">
+            @if (Model.Users.Items.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>
+                                    <a href="@GetSortUrl("FullName")" class="text-decoration-none">
+                                        Full Name
+                                        @if (Model.CurrentSort == "FullName")
+                                        {
+                                            <i class="fas @GetSortIcon()"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@GetSortUrl("Username")" class="text-decoration-none">
+                                        Username
+                                        @if (Model.CurrentSort == "Username")
+                                        {
+                                            <i class="fas @GetSortIcon()"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@GetSortUrl("Email")" class="text-decoration-none">
+                                        Email
+                                        @if (Model.CurrentSort == "Email")
+                                        {
+                                            <i class="fas @GetSortIcon()"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@GetSortUrl("Role")" class="text-decoration-none">
+                                        Role
+                                        @if (Model.CurrentSort == "Role")
+                                        {
+                                            <i class="fas @GetSortIcon()"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@GetSortUrl("IsActive")" class="text-decoration-none">
+                                        Status
+                                        @if (Model.CurrentSort == "IsActive")
+                                        {
+                                            <i class="fas @GetSortIcon()"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@GetSortUrl("CreatedAt")" class="text-decoration-none">
+                                        Created
+                                        @if (Model.CurrentSort == "CreatedAt")
+                                        {
+                                            <i class="fas @GetSortIcon()"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@GetSortUrl("LastLoginAt")" class="text-decoration-none">
+                                        Last Login
+                                        @if (Model.CurrentSort == "LastLoginAt")
+                                        {
+                                            <i class="fas @GetSortIcon()"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model.Users.Items)
+                            {
+                                <tr class="@(user.IsActive ? "" : "table-secondary")">
+                                    <td>
+                                        <strong>@user.FullName</strong>
+                                    </td>
+                                    <td>
+                                        <code>@user.Username</code>
+                                    </td>
+                                    <td>
+                                        <a href="mailto:@user.Email">@user.Email</a>
+                                    </td>
+                                    <td>
+                                        @GetRoleBadge(user.Role)
+                                    </td>
+                                    <td>
+                                        @GetStatusBadge(user.IsActive)
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            @user.CreatedAt.ToString("MMM dd, yyyy")
+                                        </small>
+                                    </td>
+                                    <td>
+                                        @if (user.LastLoginAt.HasValue)
+                                        {
+                                            <small class="text-muted">
+                                                @user.LastLoginAt.Value.ToString("MMM dd, yyyy HH:mm")
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Never</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-outline-info" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if (CanEditUser(user))
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary" title="Edit User">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            }
+                                            @if (CanResetPassword(user))
+                                            {
+                                                <a asp-action="ChangePassword" asp-route-id="@user.Id" class="btn btn-sm btn-outline-warning" title="Change Password">
+                                                    <i class="fas fa-key"></i>
+                                                </a>
+                                            }
+                                            @if (CanDeleteUser(user) && User.IsInRole("Administrator"))
+                                            {
+                                                <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-outline-danger" title="Delete User">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.Users.TotalPages > 1)
+                {
+                    <nav aria-label="User pagination">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.Users.HasPreviousPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@GetPageUrl(1)">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="@GetPageUrl(Model.Users.Page - 1)">Previous</a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, Model.Users.Page - 2); i <= Math.Min(Model.Users.TotalPages, Model.Users.Page + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.Users.Page ? "active" : "")">
+                                    <a class="page-link" href="@GetPageUrl(i)">@i</a>
+                                </li>
+                            }
+
+                            @if (Model.Users.HasNextPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@GetPageUrl(Model.Users.Page + 1)">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="@GetPageUrl(Model.Users.TotalPages)">Last</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No users found</h5>
+                    <p class="text-muted">Try adjusting your search criteria or create a new user.</p>
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i> Create First User
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetSortUrl(string sortField)
+    {
+        var newDirection = Model.CurrentSort == sortField && Model.SortDirection == "asc" ? "desc" : "asc";
+        var routeValues = new RouteValueDictionary
+        {
+            ["SearchTerm"] = Model.Filter.SearchTerm,
+            ["Role"] = Model.Filter.Role,
+            ["IsActive"] = Model.Filter.IsActive,
+            ["CreatedFrom"] = Model.Filter.CreatedFrom?.ToString("yyyy-MM-dd"),
+            ["CreatedTo"] = Model.Filter.CreatedTo?.ToString("yyyy-MM-dd"),
+            ["HasRecentLogin"] = Model.Filter.HasRecentLogin,
+            ["Page"] = 1,
+            ["PageSize"] = Model.Filter.PageSize,
+            ["SortBy"] = sortField,
+            ["SortDirection"] = newDirection
+        };
+        return Url.Action("Index", routeValues);
+    }
+
+    string GetPageUrl(int page)
+    {
+        var routeValues = new RouteValueDictionary
+        {
+            ["SearchTerm"] = Model.Filter.SearchTerm,
+            ["Role"] = Model.Filter.Role,
+            ["IsActive"] = Model.Filter.IsActive,
+            ["CreatedFrom"] = Model.Filter.CreatedFrom?.ToString("yyyy-MM-dd"),
+            ["CreatedTo"] = Model.Filter.CreatedTo?.ToString("yyyy-MM-dd"),
+            ["HasRecentLogin"] = Model.Filter.HasRecentLogin,
+            ["Page"] = page,
+            ["PageSize"] = Model.Filter.PageSize,
+            ["SortBy"] = Model.Filter.SortBy,
+            ["SortDirection"] = Model.Filter.SortDirection
+        };
+        return Url.Action("Index", routeValues);
+    }
+
+    string GetSortIcon()
+    {
+        return Model.SortDirection == "asc" ? "fa-sort-up" : "fa-sort-down";
+    }
+
+    Microsoft.AspNetCore.Html.IHtmlContent GetRoleBadge(UserRole role)
+    {
+        var badgeClass = role switch
+        {
+            UserRole.Administrator => "badge-danger",
+            UserRole.Manager => "badge-warning",
+            UserRole.Staff => "badge-info",
+            _ => "badge-secondary"
+        };
+
+        return Html.Raw($"<span class=\"badge {badgeClass}\">{role}</span>");
+    }
+
+    Microsoft.AspNetCore.Html.IHtmlContent GetStatusBadge(bool isActive)
+    {
+        var badgeClass = isActive ? "badge-success" : "badge-secondary";
+        var text = isActive ? "Active" : "Inactive";
+        var icon = isActive ? "fa-check-circle" : "fa-times-circle";
+
+        return Html.Raw($"<span class=\"badge {badgeClass}\"><i class=\"fas {icon}\"></i> {text}</span>");
+    }
+
+    bool CanEditUser(InventoryManagement.Application.DTOs.UserDto user)
+    {
+        var currentUserIdClaim = User.FindFirst("UserId");
+        var currentUserId = currentUserIdClaim != null && int.TryParse(currentUserIdClaim.Value, out var id) ? id : 0;
+        
+        // Users can edit themselves
+        if (currentUserId == user.Id)
+            return true;
+            
+        // Administrators can edit anyone
+        if (User.IsInRole("Administrator"))
+            return true;
+            
+        // Managers can edit staff
+        if (User.IsInRole("Manager") && user.Role == UserRole.Staff)
+            return true;
+
+        return false;
+    }
+
+    bool CanDeleteUser(InventoryManagement.Application.DTOs.UserDto user)
+    {
+        var currentUserIdClaim = User.FindFirst("UserId");
+        var currentUserId = currentUserIdClaim != null && int.TryParse(currentUserIdClaim.Value, out var id) ? id : 0;
+        
+        // Users cannot delete themselves
+        if (currentUserId == user.Id)
+            return false;
+            
+        // Only administrators can delete
+        return User.IsInRole("Administrator");
+    }
+
+    bool CanResetPassword(InventoryManagement.Application.DTOs.UserDto user)
+    {
+        var currentUserIdClaim = User.FindFirst("UserId");
+        var currentUserId = currentUserIdClaim != null && int.TryParse(currentUserIdClaim.Value, out var id) ? id : 0;
+        
+        // Users can change their own password
+        if (currentUserId == user.Id)
+            return true;
+            
+        // Administrators can reset anyone's password
+        if (User.IsInRole("Administrator"))
+            return true;
+            
+        // Managers can reset staff passwords
+        if (User.IsInRole("Manager") && user.Role == UserRole.Staff)
+            return true;
+
+        return false;
+    }
+}

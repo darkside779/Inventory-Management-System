@@ -1,0 +1,362 @@
+@model InventoryManagement.WebUI.ViewModels.Transactions.CreateAdjustmentViewModel
+
+@{
+    ViewData["Title"] = "Create Inventory Adjustment";
+    ViewData["PageTitle"] = "Inventory Adjustment";
+    ViewData["PageDescription"] = "Adjust inventory quantities";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">@ViewData["PageTitle"]</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Transaction")">Transactions</a></li>
+                        <li class="breadcrumb-item active">Adjustment</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-8 col-lg-10 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-adjust text-info me-2"></i>Create Inventory Adjustment
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <div>
+                                <strong>Important:</strong> Inventory adjustments permanently modify stock levels. 
+                                Please ensure you have proper authorization and documentation before proceeding.
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="CreateAdjustment" method="post" id="adjustmentForm">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row g-3">
+                            <!-- Product Selection -->
+                            <div class="col-md-6">
+                                <label asp-for="ProductId" class="form-label required">Product</label>
+                                <select asp-for="ProductId" asp-items="Model.Products" class="form-select" required>
+                                </select>
+                                <span asp-validation-for="ProductId" class="text-danger"></span>
+                            </div>
+
+                            <!-- Warehouse Selection -->
+                            <div class="col-md-6">
+                                <label asp-for="WarehouseId" class="form-label required">Warehouse</label>
+                                <select asp-for="WarehouseId" asp-items="Model.Warehouses" class="form-select" required>
+                                </select>
+                                <span asp-validation-for="WarehouseId" class="text-danger"></span>
+                            </div>
+
+                            <!-- Current Stock Display -->
+                            <div class="col-12">
+                                <div class="alert alert-info" id="stockAlert" style="display: none;">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <div>
+                                            <strong>Current Stock:</strong> <span id="currentStockDisplay">-</span> units
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Adjustment Type Selection -->
+                            <div class="col-12">
+                                <label class="form-label">Adjustment Type</label>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="adjustmentType" id="increaseRadio" value="increase" checked>
+                                            <label class="form-check-label text-success" for="increaseRadio">
+                                                <i class="fas fa-plus-circle me-1"></i>Increase Stock
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="adjustmentType" id="decreaseRadio" value="decrease">
+                                            <label class="form-check-label text-danger" for="decreaseRadio">
+                                                <i class="fas fa-minus-circle me-1"></i>Decrease Stock
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quantity Adjustment -->
+                            <div class="col-md-6">
+                                <label class="form-label required">Adjustment Quantity</label>
+                                <input type="number" id="adjustmentQuantity" class="form-control" min="1" step="1" placeholder="Enter adjustment amount" required />
+                                <input asp-for="QuantityAdjustment" type="hidden" />
+                                <span asp-validation-for="QuantityAdjustment" class="text-danger"></span>
+                                <div class="form-text">Positive for increase, negative for decrease</div>
+                            </div>
+
+                            <!-- New Stock Level Display -->
+                            <div class="col-md-6">
+                                <label class="form-label">New Stock Level</label>
+                                <div class="input-group">
+                                    <input type="text" id="newStockLevel" class="form-control" readonly />
+                                    <span class="input-group-text">units</span>
+                                </div>
+                                <div class="form-text">Stock level after adjustment</div>
+                            </div>
+
+                            <!-- Reason (Required) -->
+                            <div class="col-md-6">
+                                <label asp-for="Reason" class="form-label required">Reason</label>
+                                <select asp-for="Reason" class="form-select" required>
+                                    <option value="">-- Select Reason --</option>
+                                    <option value="Physical Count Discrepancy">Physical Count Discrepancy</option>
+                                    <option value="Damage">Damaged Goods</option>
+                                    <option value="Theft/Loss">Theft or Loss</option>
+                                    <option value="Expiry">Expired Products</option>
+                                    <option value="Found Inventory">Found/Discovered Inventory</option>
+                                    <option value="System Error Correction">System Error Correction</option>
+                                    <option value="Quality Control">Quality Control Issues</option>
+                                    <option value="Cycle Count">Cycle Count Adjustment</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <span asp-validation-for="Reason" class="text-danger"></span>
+                            </div>
+
+                            <!-- Reference Number -->
+                            <div class="col-md-6">
+                                <label asp-for="ReferenceNumber" class="form-label">Reference Number</label>
+                                <input asp-for="ReferenceNumber" class="form-control" placeholder="Audit#, Report#, etc." />
+                                <span asp-validation-for="ReferenceNumber" class="text-danger"></span>
+                                <div class="form-text">Audit report, incident number, etc.</div>
+                            </div>
+
+                            <!-- Notes (Required for adjustments) -->
+                            <div class="col-12">
+                                <label asp-for="Notes" class="form-label required">Detailed Notes</label>
+                                <textarea asp-for="Notes" class="form-control" rows="4" placeholder="Provide detailed explanation for this adjustment..." required></textarea>
+                                <span asp-validation-for="Notes" class="text-danger"></span>
+                                <div class="form-text">Detailed explanation is required for audit purposes</div>
+                            </div>
+                        </div>
+
+                        <!-- Adjustment Summary -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Adjustment Summary</h6>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <strong>Current Stock:</strong> <span id="summaryCurrent">-</span> units
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Adjustment:</strong> <span id="summaryAdjustment">0</span> units
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>New Stock:</strong> <span id="summaryNew">-</span> units
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Net Change:</strong> <span id="summaryChange">0</span> units
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Negative Stock Warning -->
+                        <div class="row mt-3" id="negativeStockWarning" style="display: none;">
+                            <div class="col-12">
+                                <div class="alert alert-danger">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                        <div>
+                                            <strong>Error:</strong> This adjustment would result in negative stock, which is not allowed.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                        <i class="fas fa-times me-1"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-info" id="submitBtn">
+                                        <i class="fas fa-adjust me-1"></i>Create Adjustment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        $(document).ready(function() {
+            var currentStock = 0;
+
+            // Load current stock when product and warehouse are selected
+            function loadCurrentStock() {
+                var productId = $('#ProductId').val();
+                var warehouseId = $('#WarehouseId').val();
+
+                if (productId && warehouseId) {
+                    $.get('@Url.Action("GetCurrentStock")', { productId: productId, warehouseId: warehouseId })
+                        .done(function(data) {
+                            if (data.success) {
+                                currentStock = data.currentStock || 0;
+                                $('#currentStockDisplay').text(currentStock.toLocaleString());
+                                $('#stockAlert').show();
+                                updateSummary();
+                            }
+                        })
+                        .fail(function() {
+                            $('#stockAlert').hide();
+                            currentStock = 0;
+                        });
+                } else {
+                    $('#stockAlert').hide();
+                    currentStock = 0;
+                }
+            }
+
+            // Update adjustment calculation
+            function updateSummary() {
+                var adjustmentQty = parseInt($('#adjustmentQuantity').val()) || 0;
+                var isIncrease = $('input[name="adjustmentType"]:checked').val() === 'increase';
+                var actualAdjustment = isIncrease ? adjustmentQty : -adjustmentQty;
+                var newStock = currentStock + actualAdjustment;
+
+                // Update hidden field
+                $('#QuantityAdjustment').val(actualAdjustment);
+
+                // Update displays
+                $('#newStockLevel').val(newStock.toLocaleString());
+                $('#summaryCurrent').text(currentStock.toLocaleString());
+                $('#summaryAdjustment').text((isIncrease ? '+' : '') + actualAdjustment.toLocaleString());
+                $('#summaryNew').text(newStock.toLocaleString());
+                $('#summaryChange').text((isIncrease ? '+' : '') + actualAdjustment.toLocaleString());
+
+                // Validate stock level
+                if (newStock < 0) {
+                    $('#negativeStockWarning').show();
+                    $('#submitBtn').prop('disabled', true);
+                } else {
+                    $('#negativeStockWarning').hide();
+                    $('#submitBtn').prop('disabled', false);
+                }
+
+                // Update button text and color
+                if (isIncrease) {
+                    $('#submitBtn').removeClass('btn-danger').addClass('btn-info')
+                        .html('<i class="fas fa-plus-circle me-1"></i>Create Adjustment (Increase)');
+                } else {
+                    $('#submitBtn').removeClass('btn-info').addClass('btn-danger')
+                        .html('<i class="fas fa-minus-circle me-1"></i>Create Adjustment (Decrease)');
+                }
+            }
+
+            // Event handlers
+            $('#ProductId, #WarehouseId').change(loadCurrentStock);
+            $('#adjustmentQuantity').on('input', updateSummary);
+            $('input[name="adjustmentType"]').change(updateSummary);
+
+            // Initialize
+            loadCurrentStock();
+            updateSummary();
+
+            // Form validation
+            $('#adjustmentForm').on('submit', function(e) {
+                var adjustmentQty = parseInt($('#adjustmentQuantity').val());
+                var productId = $('#ProductId').val();
+                var warehouseId = $('#WarehouseId').val();
+                var reason = $('#Reason').val();
+                var notes = $('#Notes').val().trim();
+
+                if (!productId) {
+                    e.preventDefault();
+                    alert('Please select a product.');
+                    return false;
+                }
+
+                if (!warehouseId) {
+                    e.preventDefault();
+                    alert('Please select a warehouse.');
+                    return false;
+                }
+
+                if (!adjustmentQty || adjustmentQty <= 0) {
+                    e.preventDefault();
+                    alert('Please enter a valid adjustment quantity greater than zero.');
+                    return false;
+                }
+
+                if (!reason) {
+                    e.preventDefault();
+                    alert('Please select a reason for the adjustment.');
+                    return false;
+                }
+
+                if (!notes) {
+                    e.preventDefault();
+                    alert('Detailed notes are required for inventory adjustments.');
+                    return false;
+                }
+
+                var actualAdjustment = $('input[name="adjustmentType"]:checked').val() === 'increase' ? adjustmentQty : -adjustmentQty;
+                var newStock = currentStock + actualAdjustment;
+
+                if (newStock < 0) {
+                    e.preventDefault();
+                    alert('This adjustment would result in negative stock, which is not allowed.');
+                    return false;
+                }
+
+                // Confirmation for large adjustments
+                if (Math.abs(actualAdjustment) > currentStock * 0.5) {
+                    var message = actualAdjustment > 0 ? 
+                        'This is a large stock increase. Are you sure this is correct?' :
+                        'This is a large stock decrease. Are you sure this is correct?';
+                    
+                    if (!confirm(message)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+
+                // Disable submit button to prevent double submission
+                $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Creating...');
+            });
+
+            // Enable enhanced select dropdowns if Select2 is available
+            if (typeof $.fn.select2 !== 'undefined') {
+                $('#ProductId, #WarehouseId').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%'
+                });
+            }
+        });
+    </script>
+}

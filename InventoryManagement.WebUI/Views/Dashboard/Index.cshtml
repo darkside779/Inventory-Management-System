@@ -1,0 +1,367 @@
+@model InventoryManagement.WebUI.ViewModels.Dashboard.DashboardViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    ViewData["PageTitle"] = Model.PageTitle;
+    ViewData["PageSubtitle"] = Model.PageSubtitle;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <style>
+        .kpi-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .kpi-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .activity-item {
+            border-left: 3px solid #007bff;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+        }
+        .alert-item {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .quick-action-btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-weight: 500;
+        }
+    </style>
+}
+
+<div class="row">
+    <!-- KPI Cards Row 1 -->
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="kpi-card text-center">
+            <i class="fas fa-boxes kpi-icon"></i>
+            <div class="kpi-value">@Model.TotalProducts.ToString("N0")</div>
+            <div class="kpi-label">Total Products</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="kpi-card text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <i class="fas fa-tags kpi-icon"></i>
+            <div class="kpi-value">@Model.TotalCategories.ToString("N0")</div>
+            <div class="kpi-label">Categories</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="kpi-card text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <i class="fas fa-dollar-sign kpi-icon"></i>
+            <div class="kpi-value">@Model.TotalInventoryValue.ToString("C0")</div>
+            <div class="kpi-label">Inventory Value</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="kpi-card text-center" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+            <i class="fas fa-exclamation-triangle kpi-icon"></i>
+            <div class="kpi-value">@Model.LowStockProducts.ToString("N0")</div>
+            <div class="kpi-label">Low Stock Items</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Charts Section -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Transaction Trends (Last 6 Months)</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="refreshChart('transactionTrends')">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="transactionTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Category Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="categoryDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        @if (Model.CanAddProducts || Model.CanManageInventory)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.CanAddProducts)
+                    {
+                        <form asp-action="QuickAddProduct" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-primary quick-action-btn">
+                                <i class="fas fa-plus me-2"></i>Add New Product
+                            </button>
+                        </form>
+                    }
+                    @if (Model.CanManageInventory)
+                    {
+                        <form asp-action="QuickStockIn" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-success quick-action-btn">
+                                <i class="fas fa-arrow-up me-2"></i>Stock In
+                            </button>
+                        </form>
+                        <form asp-action="QuickStockOut" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-warning quick-action-btn">
+                                <i class="fas fa-arrow-down me-2"></i>Stock Out
+                            </button>
+                        </form>
+                    }
+                    <form asp-action="QuickLowStockReport" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-info quick-action-btn">
+                            <i class="fas fa-chart-bar me-2"></i>Low Stock Report
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <!-- Low Stock Alerts -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>Low Stock Alerts</h5>
+                <span class="badge bg-danger">@Model.LowStockAlerts.Count</span>
+            </div>
+            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                @if (Model.LowStockAlerts.Any())
+                {
+                    @foreach (var alert in Model.LowStockAlerts)
+                    {
+                        <div class="alert-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>@alert.ProductName</strong>
+                                    <br><small class="text-muted">@alert.CategoryName</small>
+                                </div>
+                                <span class="badge @(alert.AlertLevel == "Critical" ? "bg-danger" : "bg-warning")">
+                                    @alert.AlertLevel
+                                </span>
+                            </div>
+                            <div class="mt-2">
+                                <small>
+                                    Current: <strong>@alert.CurrentStock</strong> |
+                                    Threshold: <strong>@alert.LowStockThreshold</strong>
+                                </small>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center">No low stock alerts</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities and Top Products -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activities</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="refreshActivities()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                <div id="recentActivities">
+                    @await Html.PartialAsync("_RecentActivities", Model.RecentActivities)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Top Moving Products</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.TopMovingProducts.Any())
+                {
+                    @foreach (var product in Model.TopMovingProducts.Take(5))
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <strong>#@product.Rank @product.ProductName</strong>
+                                <br><small class="text-muted">@product.CategoryName</small>
+                            </div>
+                            <div class="text-end">
+                                <div><strong>@product.Quantity units</strong></div>
+                                <small class="text-success">@product.Value.ToString("C")</small>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center">No recent product movements</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let transactionTrendsChart, categoryChart;
+
+        $(document).ready(function() {
+            initializeCharts();
+            
+            // Auto-refresh every 5 minutes
+            setInterval(function() {
+                refreshDashboardData();
+            }, 300000);
+        });
+
+        function initializeCharts() {
+            // Transaction Trends Chart
+            $.get('@Url.Action("GetTransactionTrendsData")', function(response) {
+                if (response.success) {
+                    const ctx = document.getElementById('transactionTrendsChart').getContext('2d');
+                    transactionTrendsChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: response.data.labels,
+                            datasets: [{
+                                label: 'Transactions',
+                                data: response.data.data,
+                                borderColor: response.data.borderColor,
+                                backgroundColor: response.data.backgroundColor,
+                                fill: response.data.fill,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Category Distribution Chart
+            $.get('@Url.Action("GetCategoryDistributionData")', function(response) {
+                if (response.success) {
+                    const ctx = document.getElementById('categoryDistributionChart').getContext('2d');
+                    categoryChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: response.data.labels,
+                            datasets: [{
+                                data: response.data.data,
+                                backgroundColor: response.data.backgroundColor
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function refreshChart(chartType) {
+            if (chartType === 'transactionTrends' && transactionTrendsChart) {
+                $.get('@Url.Action("GetTransactionTrendsData")', function(response) {
+                    if (response.success) {
+                        transactionTrendsChart.data.labels = response.data.labels;
+                        transactionTrendsChart.data.datasets[0].data = response.data.data;
+                        transactionTrendsChart.update();
+                        showToast('Chart updated successfully', 'success');
+                    }
+                });
+            }
+        }
+
+        function refreshActivities() {
+            $.get('@Url.Action("GetRecentActivities")', function(response) {
+                if (response.success) {
+                    $('#recentActivities').html('');
+                    response.data.forEach(function(activity) {
+                        const activityHtml = `
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <i class="${activity.icon} me-2"></i>
+                                        <strong>${activity.description}</strong>
+                                        <br><small class="text-muted">by ${activity.userName}</small>
+                                    </div>
+                                    <small class="text-muted">${new Date(activity.activityDate).toLocaleDateString()}</small>
+                                </div>
+                            </div>
+                        `;
+                        $('#recentActivities').append(activityHtml);
+                    });
+                    showToast('Activities refreshed', 'success');
+                }
+            });
+        }
+
+        function refreshDashboardData() {
+            refreshActivities();
+            refreshChart('transactionTrends');
+        }
+    </script>
+}

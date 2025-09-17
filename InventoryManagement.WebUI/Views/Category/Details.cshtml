@@ -1,0 +1,135 @@
+@model InventoryManagement.WebUI.ViewModels.Category.CategoryDetailsViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    ViewData["PageTitle"] = Model.PageTitle;
+    ViewData["PageSubtitle"] = Model.PageSubtitle;
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tag me-2"></i>@Model.Name
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success ms-2">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary ms-2">Inactive</span>
+                    }
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Name)</dt>
+                    <dd class="col-sm-9">@Model.Name</dd>
+
+                    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Description)</dt>
+                    <dd class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            @Model.Description
+                        }
+                        else
+                        {
+                            <span class="text-muted">No description provided</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.ProductCount)</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge bg-info">@Model.ProductCount products</span>
+                    </dd>
+
+                    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.IsActive)</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CreatedDate)</dt>
+                    <dd class="col-sm-9">@Model.CreatedDate.ToString("MMMM dd, yyyy 'at' hh:mm tt")</dd>
+
+                    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.LastModified)</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.LastModified.HasValue)
+                        {
+                            @Model.LastModified.Value.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Never modified</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2"></i>Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (User.IsInRole("Administrator") || User.IsInRole("Manager"))
+                    {
+                        <a href="@Url.Action("Edit", "Category", new { id = Model.Id })" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Category
+                        </a>
+                    }
+                    
+                    @if (User.IsInRole("Administrator") && Model.ProductCount == 0)
+                    {
+                        <a href="@Url.Action("Delete", "Category", new { id = Model.Id })" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Delete Category
+                        </a>
+                    }
+                    else if (Model.ProductCount > 0)
+                    {
+                        <button class="btn btn-danger" disabled title="Cannot delete category with products">
+                            <i class="fas fa-trash me-2"></i>Delete Category
+                        </button>
+                        <small class="text-muted">
+                            Cannot delete category that has @Model.ProductCount associated products.
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (Model.ProductCount > 0)
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-cubes me-2"></i>Products in Category
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">This category contains <strong>@Model.ProductCount</strong> products.</p>
+                    <a href="@Url.Action("Index", "Product", new { categoryId = Model.Id })" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-eye me-2"></i>View Products
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="@Url.Action("Index", "Category")" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Categories
+    </a>
+</div>

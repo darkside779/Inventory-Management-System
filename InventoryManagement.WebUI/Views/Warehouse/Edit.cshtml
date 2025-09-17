@@ -1,0 +1,265 @@
+@model InventoryManagement.WebUI.ViewModels.Warehouses.EditWarehouseViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8 col-xl-6 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-edit me-2"></i>@Model.PageTitle
+                            </h4>
+                            <p class="text-muted mb-0">Update warehouse information</p>
+                        </div>
+                        <div class="btn-group">
+                            <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-info">
+                                <i class="fas fa-eye me-2"></i>View Details
+                            </a>
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        <input asp-for="Id" type="hidden">
+                        
+                        <div class="row g-4">
+                            <!-- Basic Information -->
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label asp-for="Name" class="form-label required">Warehouse Name</label>
+                                <input asp-for="Name" class="form-control" required>
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                                <div class="form-text">A unique name to identify this warehouse</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label asp-for="Location" class="form-label required">Location</label>
+                                <input asp-for="Location" class="form-control" required>
+                                <span asp-validation-for="Location" class="text-danger"></span>
+                                <div class="form-text">General location or city</div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label">Full Address</label>
+                                <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                                <div class="form-text">Complete address including street, city, postal code</div>
+                            </div>
+                            
+                            <!-- Contact Information -->
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3 mt-4">
+                                    <i class="fas fa-phone me-2"></i>Contact Information
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label asp-for="ContactPhone" class="form-label">Contact Phone</label>
+                                <input asp-for="ContactPhone" class="form-control" type="tel">
+                                <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                                <div class="form-text">Primary contact phone number</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label asp-for="ContactEmail" class="form-label">Contact Email</label>
+                                <input asp-for="ContactEmail" class="form-control" type="email">
+                                <span asp-validation-for="ContactEmail" class="text-danger"></span>
+                                <div class="form-text">Primary contact email address</div>
+                            </div>
+                            
+                            <!-- Capacity Information -->
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3 mt-4">
+                                    <i class="fas fa-boxes me-2"></i>Capacity Information
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label asp-for="Capacity" class="form-label">Storage Capacity</label>
+                                <div class="input-group">
+                                    <input asp-for="Capacity" class="form-control" type="number" min="1">
+                                    <span class="input-group-text">units</span>
+                                </div>
+                                <span asp-validation-for="Capacity" class="text-danger"></span>
+                                <div class="form-text">Maximum storage capacity (leave empty for unlimited)</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Status</label>
+                                <div class="form-check form-switch">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox">
+                                    <label asp-for="IsActive" class="form-check-label">
+                                        <span id="statusText">@(Model.IsActive ? "Active" : "Inactive")</span>
+                                    </label>
+                                </div>
+                                <div class="form-text" id="statusHelp">
+                                    @if (Model.IsActive)
+                                    {
+                                        <span class="text-success">Warehouse is currently active and available for operations</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-warning">Warehouse is currently inactive</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Warning for Status Change -->
+                        <div class="alert alert-warning mt-4" id="statusWarning" style="display: none;">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Status Change Warning
+                            </h6>
+                            <p class="mb-0" id="statusWarningText"></p>
+                        </div>
+                        
+                        <!-- Guidelines Panel -->
+                        <div class="alert alert-info mt-4">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-lightbulb me-2"></i>Update Guidelines
+                            </h6>
+                            <ul class="mb-0">
+                                <li><strong>Name Changes:</strong> Ensure the new name doesn't conflict with existing warehouses</li>
+                                <li><strong>Capacity Changes:</strong> Consider current inventory levels when reducing capacity</li>
+                                <li><strong>Deactivation:</strong> Cannot deactivate warehouses with active inventory items</li>
+                                <li><strong>Contact Info:</strong> Keep contact information current for operational purposes</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Warehouse
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const isActiveCheckbox = document.getElementById('IsActive');
+            const statusText = document.getElementById('statusText');
+            const statusHelp = document.getElementById('statusHelp');
+            const statusWarning = document.getElementById('statusWarning');
+            const statusWarningText = document.getElementById('statusWarningText');
+            const originalStatus = @Model.IsActive.ToString().ToLower();
+            
+            function updateStatusDisplay() {
+                const isActive = isActiveCheckbox.checked;
+                
+                // Update status text
+                statusText.textContent = isActive ? 'Active' : 'Inactive';
+                statusText.className = isActive ? 'text-success' : 'text-muted';
+                
+                // Update help text
+                if (isActive) {
+                    statusHelp.innerHTML = '<span class="text-success">Warehouse is currently active and available for operations</span>';
+                } else {
+                    statusHelp.innerHTML = '<span class="text-warning">Warehouse is currently inactive</span>';
+                }
+                
+                // Show/hide warning if status changed
+                if (isActive !== originalStatus) {
+                    statusWarning.style.display = 'block';
+                    if (!isActive && originalStatus) {
+                        statusWarningText.textContent = 'Deactivating this warehouse will prevent new inventory operations. Ensure all active inventory is transferred first.';
+                    } else if (isActive && !originalStatus) {
+                        statusWarningText.textContent = 'Activating this warehouse will make it available for inventory operations again.';
+                    }
+                } else {
+                    statusWarning.style.display = 'none';
+                }
+            }
+            
+            if (isActiveCheckbox) {
+                isActiveCheckbox.addEventListener('change', updateStatusDisplay);
+                updateStatusDisplay(); // Initial state
+            }
+            
+            // Form validation
+            const form = document.querySelector('.needs-validation');
+            const inputs = form.querySelectorAll('input[required], textarea[required]');
+            
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    } else {
+                        this.classList.remove('is-valid');
+                        this.classList.add('is-invalid');
+                    }
+                });
+                
+                input.addEventListener('input', function() {
+                    if (this.classList.contains('is-invalid') && this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                });
+            });
+            
+            // Form submission validation
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    // Focus on first invalid field
+                    const firstInvalid = form.querySelector(':invalid');
+                    if (firstInvalid) {
+                        firstInvalid.focus();
+                    }
+                }
+                
+                form.classList.add('was-validated');
+            });
+            
+            // Capacity validation
+            const capacityInput = document.getElementById('Capacity');
+            if (capacityInput) {
+                capacityInput.addEventListener('input', function() {
+                    const value = parseInt(this.value);
+                    if (value && value <= 0) {
+                        this.setCustomValidity('Capacity must be greater than 0');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                });
+            }
+            
+            // Phone number formatting
+            const phoneInput = document.getElementById('ContactPhone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function() {
+                    let value = this.value.replace(/[^\d\+\-\(\)\s]/g, '');
+                    this.value = value;
+                });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,254 @@
+@model InventoryManagement.WebUI.ViewModels.Products.CreateProductViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="page-header mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        @foreach (var (text, url) in Model.BreadcrumbItems)
+                        {
+                            @if (url != null)
+                            {
+                                <li class="breadcrumb-item">
+                                    <a href="@url">@text</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="breadcrumb-item active" aria-current="page">@text</li>
+                            }
+                        }
+                    </ol>
+                </nav>
+                <h2 class="page-title">@Model.PageTitle</h2>
+                <p class="text-muted">@Model.PageSubtitle</p>
+            </div>
+
+            <!-- Create Product Form -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-box me-2"></i>Product Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="Name" class="form-label"></label>
+                                            <input asp-for="Name" class="form-control" placeholder="Enter product name" />
+                                            <span asp-validation-for="Name" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SKU" class="form-label"></label>
+                                            <input asp-for="SKU" class="form-control" placeholder="Enter unique SKU" />
+                                            <span asp-validation-for="SKU" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label"></label>
+                                    <textarea asp-for="Description" class="form-control" rows="3" 
+                                              placeholder="Enter product description (optional)"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="Price" class="form-label"></label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input asp-for="Price" class="form-control" placeholder="0.00" />
+                                            </div>
+                                            <span asp-validation-for="Price" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="Cost" class="form-label"></label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input asp-for="Cost" class="form-control" placeholder="0.00" />
+                                            </div>
+                                            <span asp-validation-for="Cost" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="LowStockThreshold" class="form-label"></label>
+                                            <input asp-for="LowStockThreshold" class="form-control" placeholder="10" />
+                                            <span asp-validation-for="LowStockThreshold" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="CategoryId" class="form-label"></label>
+                                            <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                                                <option value="">Select Category</option>
+                                            </select>
+                                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SupplierId" class="form-label"></label>
+                                            <select asp-for="SupplierId" asp-items="Model.Suppliers" class="form-select">
+                                                <option value="">Select Supplier (Optional)</option>
+                                            </select>
+                                            <span asp-validation-for="SupplierId" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="Unit" class="form-label"></label>
+                                            <input asp-for="Unit" class="form-control" placeholder="Piece" />
+                                            <span asp-validation-for="Unit" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="Weight" class="form-label"></label>
+                                            <div class="input-group">
+                                                <input asp-for="Weight" class="form-control" placeholder="0.00" />
+                                                <span class="input-group-text">kg</span>
+                                            </div>
+                                            <span asp-validation-for="Weight" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="Barcode" class="form-label"></label>
+                                            <input asp-for="Barcode" class="form-control" placeholder="Enter barcode" />
+                                            <span asp-validation-for="Barcode" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Dimensions" class="form-label"></label>
+                                    <input asp-for="Dimensions" class="form-control" 
+                                           placeholder="e.g., 10cm x 5cm x 2cm" />
+                                    <span asp-validation-for="Dimensions" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Products
+                            </a>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Create Product
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg-4">
+                    <!-- Help Panel -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Product Guidelines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="help-item mb-3">
+                                <strong>SKU Requirements:</strong>
+                                <small class="text-muted d-block">
+                                    Must be unique across all products. Use alphanumeric characters and hyphens.
+                                </small>
+                            </div>
+                            <div class="help-item mb-3">
+                                <strong>Pricing:</strong>
+                                <small class="text-muted d-block">
+                                    Price is the selling price. Cost is your purchase/manufacturing cost (optional).
+                                </small>
+                            </div>
+                            <div class="help-item mb-3">
+                                <strong>Stock Threshold:</strong>
+                                <small class="text-muted d-block">
+                                    Set the minimum quantity level to trigger low stock alerts.
+                                </small>
+                            </div>
+                            <div class="help-item">
+                                <strong>Barcode:</strong>
+                                <small class="text-muted d-block">
+                                    Optional. Must be unique if provided. Used for scanning operations.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // SKU validation
+        document.getElementById('SKU').addEventListener('blur', function() {
+            const sku = this.value.trim();
+            if (sku) {
+                // Here you would check SKU uniqueness via AJAX
+                // For now, just format validation
+                if (!/^[A-Z0-9-]+$/i.test(sku)) {
+                    this.setCustomValidity('SKU should contain only letters, numbers, and hyphens');
+                } else {
+                    this.setCustomValidity('');
+                }
+            }
+        });
+
+        // Auto-generate SKU based on name (optional helper)
+        document.getElementById('Name').addEventListener('blur', function() {
+            const skuField = document.getElementById('SKU');
+            if (!skuField.value && this.value) {
+                const suggestedSku = this.value
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9\s]/g, '')
+                    .replace(/\s+/g, '-')
+                    .substring(0, 20);
+                skuField.value = suggestedSku;
+            }
+        });
+
+        // Form validation
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
+}

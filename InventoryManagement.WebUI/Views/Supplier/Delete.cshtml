@@ -1,0 +1,322 @@
+@model InventoryManagement.WebUI.ViewModels.Suppliers.DeleteSupplierViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8 col-xl-6 mx-auto">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>@Model.PageTitle
+                            </h4>
+                            <p class="mb-0 opacity-75">This action cannot be undone</p>
+                        </div>
+                        <div class="btn-group">
+                            <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-eye me-2"></i>View Details
+                            </a>
+                            <a href="@Url.Action("Index")" class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-arrow-left me-2"></i>Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Supplier Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-danger mb-3">
+                                <i class="fas fa-truck me-2"></i>Supplier to Delete
+                            </h5>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <strong>Name:</strong> @Model.Name
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(Model.ContactPerson))
+                                        {
+                                            <div class="col-md-6">
+                                                <strong>Contact Person:</strong> @Model.ContactPerson
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(Model.Email))
+                                        {
+                                            <div class="col-md-6">
+                                                <strong>Email:</strong> @Model.Email
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                                        {
+                                            <div class="col-md-6">
+                                                <strong>Phone:</strong> @Model.Phone
+                                            </div>
+                                        }
+                                        <div class="col-md-6">
+                                            <strong>Products:</strong> @Model.ProductCount
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Status:</strong> 
+                                            @if (Model.IsActive)
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            }
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy")
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Last Updated:</strong> @Model.UpdatedAt.ToString("MMM dd, yyyy")
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Impact Assessment -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-warning mb-3">
+                                <i class="fas fa-assessment me-2"></i>Impact Assessment
+                            </h5>
+                            
+                            @if (Model.ProductCount > 0)
+                            {
+                                <div class="alert alert-warning">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-boxes me-2"></i>Products Associated
+                                    </h6>
+                                    <p class="mb-2">
+                                        This supplier has <strong>@Model.ProductCount</strong> products associated with it.
+                                    </p>
+                                    @if (Model.HasActiveProducts)
+                                    {
+                                        <p class="mb-0 text-danger">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            <strong>Warning:</strong> Some products are still active and may affect ongoing operations.
+                                        </p>
+                                    }
+                                </div>
+                            }
+                            
+                            @if (Model.HasInventoryWithStock)
+                            {
+                                <div class="alert alert-danger">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-warehouse me-2"></i>Inventory Stock
+                                    </h6>
+                                    <p class="mb-0">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        <strong>Critical:</strong> This supplier has products with current inventory stock. 
+                                        Deleting may affect stock tracking and reporting.
+                                    </p>
+                                </div>
+                            }
+                            
+                            @if (Model.HasRecentTransactions)
+                            {
+                                <div class="alert alert-warning">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-exchange-alt me-2"></i>Recent Transactions
+                                    </h6>
+                                    <p class="mb-0">
+                                        This supplier has recent transactions. Deleting may affect transaction history and auditing.
+                                    </p>
+                                </div>
+                            }
+                            
+                            @if (Model.TotalInventoryValue > 0)
+                            {
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-dollar-sign me-2"></i>Inventory Value
+                                    </h6>
+                                    <p class="mb-0">
+                                        Total inventory value associated with this supplier: 
+                                        <strong>$@Model.TotalInventoryValue.ToString("N2")</strong>
+                                    </p>
+                                </div>
+                            }
+                            
+                            @if (!Model.HasActiveProducts && !Model.HasInventoryWithStock && !Model.HasRecentTransactions && Model.ProductCount == 0)
+                            {
+                                <div class="alert alert-success">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-check-circle me-2"></i>Safe to Delete
+                                    </h6>
+                                    <p class="mb-0">
+                                        This supplier can be safely deleted as it has no active products, inventory, or recent transactions.
+                                    </p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Deletion Process Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>What Happens When You Delete
+                            </h5>
+                            <div class="card border-info">
+                                <div class="card-body">
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            The supplier will be marked as <strong>inactive</strong> (soft delete)
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Historical data and relationships will be preserved
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Existing products will remain but may need reassignment
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Transaction history will be maintained for auditing
+                                        </li>
+                                        <li class="mb-0">
+                                            <i class="fas fa-times text-danger me-2"></i>
+                                            The supplier will no longer be available for new operations
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Validation Requirements -->
+                    @if (Model.HasActiveProducts || Model.HasInventoryWithStock || Model.HasRecentTransactions)
+                    {
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-danger mb-3">
+                                    <i class="fas fa-shield-alt me-2"></i>Prerequisites for Deletion
+                                </h5>
+                                <div class="alert alert-danger">
+                                    <h6 class="alert-heading">Action Required</h6>
+                                    <p>Before deleting this supplier, please consider:</p>
+                                    <ul class="mb-0">
+                                        @if (Model.HasActiveProducts)
+                                        {
+                                            <li>Deactivate or reassign all active products</li>
+                                        }
+                                        @if (Model.HasInventoryWithStock)
+                                        {
+                                            <li>Process or transfer remaining inventory stock</li>
+                                        }
+                                        @if (Model.HasRecentTransactions)
+                                        {
+                                            <li>Ensure all recent transactions are properly reconciled</li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Confirmation -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="text-danger mb-3">
+                                <i class="fas fa-hand-paper me-2"></i>Confirmation Required
+                            </h5>
+                            <form asp-action="Delete" method="post" id="deleteForm">
+                                @Html.AntiForgeryToken()
+                                <input asp-for="Id" type="hidden">
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="confirmUnderstand" required>
+                                    <label class="form-check-label" for="confirmUnderstand">
+                                        I understand the impact of deleting this supplier and its consequences
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" id="confirmProceed" required>
+                                    <label class="form-check-label" for="confirmProceed">
+                                        I want to proceed with deactivating supplier "@Model.Name"
+                                    </label>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                        <i class="fas fa-trash me-2"></i>Delete Supplier
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('deleteForm');
+            const deleteButton = document.getElementById('deleteButton');
+            const confirmUnderstand = document.getElementById('confirmUnderstand');
+            const confirmProceed = document.getElementById('confirmProceed');
+            
+            function updateDeleteButton() {
+                if (confirmUnderstand.checked && confirmProceed.checked) {
+                    deleteButton.disabled = false;
+                    deleteButton.classList.remove('btn-secondary');
+                    deleteButton.classList.add('btn-danger');
+                } else {
+                    deleteButton.disabled = true;
+                    deleteButton.classList.remove('btn-danger');
+                    deleteButton.classList.add('btn-secondary');
+                }
+            }
+            
+            confirmUnderstand.addEventListener('change', updateDeleteButton);
+            confirmProceed.addEventListener('change', updateDeleteButton);
+            
+            // Form submission confirmation
+            form.addEventListener('submit', function(event) {
+                if (!confirmUnderstand.checked || !confirmProceed.checked) {
+                    event.preventDefault();
+                    alert('Please confirm both checkboxes to proceed with deletion.');
+                    return false;
+                }
+                
+                const confirmFinal = confirm(`Are you absolutely sure you want to delete supplier "@Model.Name"?\n\nThis action will deactivate the supplier and cannot be easily undone.`);
+                
+                if (!confirmFinal) {
+                    event.preventDefault();
+                    return false;
+                }
+                
+                // Show loading state
+                deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+                deleteButton.disabled = true;
+                
+                return true;
+            });
+            
+            // Auto-focus on first checkbox when page loads
+            setTimeout(() => {
+                confirmUnderstand.focus();
+            }, 500);
+        });
+    </script>
+}

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Inventory Management System</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/InventoryManagement.WebUI.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-boxes me-2"></i>Inventory Management
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home me-1"></i>Home
+                            </a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-cog me-1"></i>Management
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        @if (User.IsInRole("Administrator"))
+                                        {
+                                            <li><a class="dropdown-item" asp-controller="User" asp-action="Index">
+                                                <i class="fas fa-users me-1"></i>User Management
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                        }
+                                        <li><a class="dropdown-item" asp-controller="Inventory" asp-action="Index">
+                                            <i class="fas fa-boxes me-1"></i>Inventory
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Category" asp-action="Index">
+                                            <i class="fas fa-tags me-1"></i>Categories
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Product" asp-action="Index">
+                                            <i class="fas fa-cube me-1"></i>Products
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Transaction" asp-action="Index">
+                                            <i class="fas fa-exchange-alt me-1"></i>Transactions
+                                        </a></li>
+                                    </ul>
+                                </li>
+                            }
+                            @if (User.IsInRole("Administrator") || User.IsInRole("Manager"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-chart-bar me-1"></i>Reports
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Reports" asp-action="Inventory">
+                                            <i class="fas fa-boxes me-1"></i>Inventory Report
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Reports" asp-action="Inventory" asp-route-type="LowStock">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Low Stock Report
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Reports" asp-action="Transactions">
+                                            <i class="fas fa-exchange-alt me-1"></i>Transaction Report
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Reports" asp-action="ProductMovement">
+                                            <i class="fas fa-chart-line me-1"></i>Product Movement Report
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" asp-controller="Reports" asp-action="Dashboard">
+                                            <i class="fas fa-tachometer-alt me-1"></i>Reports Dashboard
+                                        </a></li>
+                                    </ul>
+                                </li>
+                            }
+                        }
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">
+                                <i class="fas fa-shield-alt me-1"></i>Privacy
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-cogs me-1"></i>Management
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Product")">Products</a></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Category")">Categories</a></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Inventory")">Inventory</a></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Transaction")">Transactions</a></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Supplier")">Suppliers</a></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Warehouse")">Warehouses</a></li>
+                                    @if (User.IsInRole("Administrator"))
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="@Url.Action("Index", "User")">User Management</a></li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Login
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">
+                                    <i class="fas fa-user-plus me-1"></i>Register
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @* Display breadcrumb navigation *@
+            @await Html.PartialAsync("_Breadcrumb")
+            
+            @* Display notification messages *@
+            @await Html.PartialAsync("_Notifications")
+            
+            @* Page title section *@
+            @if (ViewData["Title"] != null)
+            {
+                <div class="page-header mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h2 mb-0">@ViewData["Title"]</h1>
+                            @if (ViewBag.PageSubtitle != null)
+                            {
+                                <p class="text-muted mb-0">@ViewBag.PageSubtitle</p>
+                            }
+                        </div>
+                        @if (IsSectionDefined("PageActions"))
+                        {
+                            <div class="page-actions">
+                                @RenderSection("PageActions", required: false)
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            
+            @RenderBody()
+        </main>
+    </div>
+
+    @* Loading component *@
+    @await Html.PartialAsync("_Loading")
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - Inventory Management System - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,133 @@
+@model InventoryManagement.WebUI.ViewModels.Category.EditCategoryViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    ViewData["PageTitle"] = Model.PageTitle;
+    ViewData["PageSubtitle"] = Model.PageSubtitle;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>Edit Category
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" class="needs-validation" novalidate>
+                    <input asp-for="Id" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label required"></label>
+                        <input asp-for="Name" class="form-control" placeholder="Enter category name" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3" 
+                                  placeholder="Enter category description (optional)"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsActive" class="form-check-input" />
+                            <label asp-for="IsActive" class="form-check-label">
+                                Active Category
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">
+                            Active categories are available for use with products
+                        </small>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Index", "Category")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Categories
+                        </a>
+                        <div>
+                            <a href="@Url.Action("Details", "Category", new { id = Model.Id })" class="btn btn-info me-2">
+                                <i class="fas fa-eye me-2"></i>View Details
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Category
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        $(document).ready(function() {
+            // Real-time validation
+            $('#Name').on('input', function() {
+                var name = $(this).val().trim();
+                if (name.length === 0) {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                } else if (name.length > 100) {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                }
+            });
+
+            $('#Description').on('input', function() {
+                var description = $(this).val().trim();
+                if (description.length > 500) {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                    if (description.length > 0) {
+                        $(this).addClass('is-valid');
+                    }
+                }
+                
+                // Update character count
+                var remaining = 500 - description.length;
+                var countText = remaining + ' characters remaining';
+                if (remaining < 0) {
+                    countText = Math.abs(remaining) + ' characters over limit';
+                }
+                
+                if (!$('#char-count').length) {
+                    $(this).after('<small id="char-count" class="form-text text-muted"></small>');
+                }
+                $('#char-count').text(countText);
+            });
+
+            // Form submission validation
+            $('form').on('submit', function(e) {
+                var isValid = true;
+                
+                // Validate name
+                var name = $('#Name').val().trim();
+                if (!name || name.length > 100) {
+                    $('#Name').addClass('is-invalid');
+                    isValid = false;
+                }
+                
+                // Validate description
+                var description = $('#Description').val().trim();
+                if (description.length > 500) {
+                    $('#Description').addClass('is-invalid');
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
+    </script>
+}

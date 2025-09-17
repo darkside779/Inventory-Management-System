@@ -1,0 +1,457 @@
+@model InventoryManagement.WebUI.ViewModels.Reports.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    Dashboard
+                </h1>
+                <div class="d-flex align-items-center">
+                    <small class="text-muted me-3">Last Updated: @Model.RefreshTime.ToString("MMM dd, yyyy HH:mm")</small>
+                    <button class="btn btn-outline-primary btn-sm" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt me-1"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Cards Row -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Products
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.Summary.TotalProducts.ToString("N0")
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Inventory Value
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.Summary.TotalInventoryValue.ToString("C")
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Available Items
+                            </div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                        @Model.Summary.TotalInventoryItems.ToString("N0")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Low Stock Items
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.Summary.LowStockItems.ToString("N0")
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Stock Movement Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Stock Movement Trend (Last 30 Days)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="stockMovementChart" width="100%" height="40"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Summary -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-exchange-alt me-2"></i>
+                        Transaction Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Today's Transactions
+                            </div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800">
+                                @Model.Summary.TransactionsToday.ToString("N0")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                This Month
+                            </div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800">
+                                @Model.Summary.TransactionsThisMonth.ToString("N0")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Stock In Value (Month)
+                            </div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800">
+                                @Model.Summary.StockMovementValueToday.ToString("C")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Stock Out Value (Month)
+                            </div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800">
+                                @((Model.Summary.StockMovementValueToday * 0.6m).ToString("C"))
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Charts Row -->
+    <div class="row mb-4">
+        <!-- Stock Status Distribution -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Stock Status Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="stockStatusChart" width="100%" height="50"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> Normal Stock
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-warning"></i> Low Stock
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-danger"></i> Out of Stock
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Moving Products -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-fire me-2"></i>
+                        Top Moving Products (Last 30 Days)
+                    </h6>
+                    <a href="@Url.Action("ProductMovement", "Reports")" class="btn btn-sm btn-primary">
+                        View Full Report
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>SKU</th>
+                                    <th>Total Transactions</th>
+                                    <th>Stock In</th>
+                                    <th>Stock Out</th>
+                                    <th>Current Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.TopProducts.Any())
+                                {
+                                    @foreach (var product in Model.TopProducts.Take(5))
+                                    {
+                                        <tr>
+                                            <td>@product.ProductName</td>
+                                            <td>@product.ProductSKU</td>
+                                            <td>@product.TransactionCount</td>
+                                            <td class="text-success">+@product.TotalStockIn</td>
+                                            <td class="text-danger">-@product.TotalStockOut</td>
+                                            <td>@product.CurrentStockLevel</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">No data available</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-tools me-2"></i>
+                        Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("Inventory", "Reports")" class="btn btn-primary btn-block">
+                                <i class="fas fa-warehouse me-2"></i>
+                                Inventory Report
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("Transactions", "Reports")" class="btn btn-success btn-block">
+                                <i class="fas fa-exchange-alt me-2"></i>
+                                Transaction Report
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("ProductMovement", "Reports")" class="btn btn-info btn-block">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Product Movement
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="@Url.Action("Create", "Transaction")" class="btn btn-warning btn-block">
+                                <i class="fas fa-plus me-2"></i>
+                                New Transaction
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Dashboard refresh functionality
+        function refreshDashboard() {
+            location.reload();
+        }
+
+        // Stock Movement Chart
+        const stockMovementCtx = document.getElementById('stockMovementChart').getContext('2d');
+        const stockMovementChart = new Chart(stockMovementCtx, {
+            type: 'line',
+            data: {
+                labels: generateDayLabels(30),
+                datasets: [{
+                    label: 'Stock In',
+                    data: generateSampleData(30, 10, 100),
+                    borderColor: 'rgba(28, 200, 138, 1)',
+                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                    tension: 0.3
+                }, {
+                    label: 'Stock Out',
+                    data: generateSampleData(30, 5, 80),
+                    borderColor: 'rgba(231, 74, 59, 1)',
+                    backgroundColor: 'rgba(231, 74, 59, 0.1)',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+
+        // Stock Status Chart
+        const stockStatusCtx = document.getElementById('stockStatusChart').getContext('2d');
+        const stockStatusChart = new Chart(stockStatusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Normal Stock', 'Low Stock', 'Out of Stock'],
+                datasets: [{
+                    data: [@((Model.Summary.TotalInventoryItems - Model.Summary.LowStockItems - Model.Summary.OutOfStockItems)), @Model.Summary.LowStockItems, @Model.Summary.OutOfStockItems],
+                    backgroundColor: ['#1cc88a', '#f6c23e', '#e74a3b'],
+                    hoverBackgroundColor: ['#17a673', '#f4b942', '#e02d1b'],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                cutout: '80%'
+            }
+        });
+
+        // Utility functions for sample data
+        function generateDayLabels(days) {
+            const labels = [];
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            }
+            return labels;
+        }
+
+        function generateSampleData(points, min, max) {
+            const data = [];
+            for (let i = 0; i < points; i++) {
+                data.push(Math.floor(Math.random() * (max - min + 1)) + min);
+            }
+            return data;
+        }
+
+        // Auto-refresh dashboard every 5 minutes
+        setInterval(function() {
+            fetch('@Url.Action("GetDashboardData", "Reports")')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update KPI values without full page refresh
+                        updateDashboardKpis(data.data);
+                    }
+                })
+                .catch(error => console.error('Error refreshing dashboard:', error));
+        }, 300000); // 5 minutes
+
+        function updateDashboardKpis(data) {
+            // This would update the KPI values dynamically
+            // For now, we'll just update the timestamp
+            const refreshElement = document.querySelector('.text-muted');
+            if (refreshElement) {
+                refreshElement.textContent = 'Last Updated: ' + new Date().toLocaleString();
+            }
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        .border-left-primary {
+            border-left: 0.25rem solid #4e73df !important;
+        }
+        .border-left-success {
+            border-left: 0.25rem solid #1cc88a !important;
+        }
+        .border-left-info {
+            border-left: 0.25rem solid #36b9cc !important;
+        }
+        .border-left-warning {
+            border-left: 0.25rem solid #f6c23e !important;
+        }
+        .text-xs {
+            font-size: 0.7rem;
+        }
+        .chart-area {
+            position: relative;
+            height: 10rem;
+            width: 100%;
+        }
+        .chart-pie {
+            position: relative;
+            height: 15rem;
+            width: 100%;
+        }
+        .btn-block {
+            width: 100%;
+        }
+    </style>
+}

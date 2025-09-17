@@ -1,0 +1,305 @@
+@model InventoryManagement.WebUI.ViewModels.Products.ProductDetailsViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="page-header mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        @foreach (var (text, url) in Model.BreadcrumbItems)
+                        {
+                            @if (url != null)
+                            {
+                                <li class="breadcrumb-item">
+                                    <a href="@url">@text</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="breadcrumb-item active" aria-current="page">@text</li>
+                            }
+                        }
+                    </ol>
+                </nav>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2 class="page-title">@Model.Product.Name</h2>
+                        <p class="text-muted">SKU: @Model.Product.SKU</p>
+                    </div>
+                    <div class="btn-group" role="group">
+                        @if (Model.CanEditProduct)
+                        {
+                            <a href="@Url.Action("Edit", new { id = Model.Product.Id })" class="btn btn-warning">
+                                <i class="fas fa-edit me-2"></i>Edit Product
+                            </a>
+                        }
+                        @if (Model.CanDeleteProduct)
+                        {
+                            <a href="@Url.Action("Delete", new { id = Model.Product.Id })" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Delete Product
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Product Details -->
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Product Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td class="fw-bold">Name:</td>
+                                            <td>@Model.Product.Name</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">SKU:</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark font-monospace">@Model.Product.SKU</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Category:</td>
+                                            <td>@Model.Product.CategoryName</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Supplier:</td>
+                                            <td>@(Model.Product.SupplierName ?? "No Supplier")</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Unit:</td>
+                                            <td>@Model.Product.Unit</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td class="fw-bold">Price:</td>
+                                            <td class="text-success fw-bold">@Model.Product.Price.ToString("C")</td>
+                                        </tr>
+                                        @if (Model.Product.Cost.HasValue)
+                                        {
+                                            <tr>
+                                                <td class="fw-bold">Cost:</td>
+                                                <td>@Model.Product.Cost.Value.ToString("C")</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-bold">Margin:</td>
+                                                <td class="text-info">
+                                                    @{
+                                                        var margin = ((Model.Product.Price - Model.Product.Cost.Value) / Model.Product.Price * 100);
+                                                    }
+                                                    @margin.ToString("F1")%
+                                                </td>
+                                            </tr>
+                                        }
+                                        <tr>
+                                            <td class="fw-bold">Low Stock Alert:</td>
+                                            <td>@Model.Product.LowStockThreshold @Model.Product.Unit</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Status:</td>
+                                            <td>
+                                                @if (Model.Product.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.Product.Description))
+                            {
+                                <div class="mt-3">
+                                    <h6>Description:</h6>
+                                    <p class="text-muted">@Model.Product.Description</p>
+                                </div>
+                            }
+
+                            <!-- Additional Details -->
+                            @if (!string.IsNullOrEmpty(Model.Product.Barcode) || Model.Product.Weight.HasValue || !string.IsNullOrEmpty(Model.Product.Dimensions))
+                            {
+                                <div class="mt-4">
+                                    <h6>Additional Information:</h6>
+                                    <div class="row">
+                                        @if (!string.IsNullOrEmpty(Model.Product.Barcode))
+                                        {
+                                            <div class="col-md-4">
+                                                <strong>Barcode:</strong><br>
+                                                <span class="font-monospace">@Model.Product.Barcode</span>
+                                            </div>
+                                        }
+                                        @if (Model.Product.Weight.HasValue)
+                                        {
+                                            <div class="col-md-4">
+                                                <strong>Weight:</strong><br>
+                                                @Model.Product.Weight.Value kg
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.Product.Dimensions))
+                                        {
+                                            <div class="col-md-4">
+                                                <strong>Dimensions:</strong><br>
+                                                @Model.Product.Dimensions
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Recent Transactions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-history me-2"></i>Recent Transactions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.RecentTransactions.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Type</th>
+                                                <th>Quantity</th>
+                                                <th>Warehouse</th>
+                                                <th>User</th>
+                                                <th>Notes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var transaction in Model.RecentTransactions.Take(10))
+                                            {
+                                                <tr>
+                                                    <td class="text-muted">@transaction.TransactionDate.ToString("MM/dd/yyyy HH:mm")</td>
+                                                    <td>
+                                                        <span class="badge @(transaction.Type == InventoryManagement.Domain.Enums.TransactionType.StockIn ? "bg-success" : 
+                                                                    transaction.Type == InventoryManagement.Domain.Enums.TransactionType.StockOut ? "bg-danger" : "bg-warning")">
+                                                            @transaction.Type
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="@(transaction.Type == InventoryManagement.Domain.Enums.TransactionType.StockIn ? "text-success" : "text-danger")">
+                                                            @(transaction.Type == InventoryManagement.Domain.Enums.TransactionType.StockIn ? "+" : "-")@Math.Abs(transaction.Quantity)
+                                                        </span>
+                                                    </td>
+                                                    <td>@transaction.WarehouseName</td>
+                                                    <td>@transaction.UserName</td>
+                                                    <td class="text-muted">@(string.IsNullOrEmpty(transaction.Notes) ? "N/A" : transaction.Notes)</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-3">
+                                    <i class="fas fa-clock fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted">No transactions recorded yet</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Current Stock Levels -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-warehouse me-2"></i>Current Stock
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.InventoryLevels.Any())
+                            {
+                                @foreach (var inventory in Model.InventoryLevels)
+                                {
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong>@inventory.WarehouseName</strong>
+                                            @if (inventory.ReservedQuantity > 0)
+                                            {
+                                                <br><small class="text-muted">Reserved: @inventory.ReservedQuantity</small>
+                                            }
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="fw-bold">@inventory.Quantity</span>
+                                            @if (inventory.Quantity <= Model.Product.LowStockThreshold)
+                                            {
+                                                <i class="fas fa-exclamation-triangle text-warning ms-1" title="Low Stock"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>Total Stock:</strong>
+                                    <strong class="text-primary">@Model.InventoryLevels.Sum(i => i.Quantity)</strong>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-3">
+                                    <i class="fas fa-boxes fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted">No inventory records</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Product Metadata -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info me-2"></i>Metadata
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless table-sm">
+                                <tr>
+                                    <td class="fw-bold">Created:</td>
+                                    <td>@Model.Product.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Updated:</td>
+                                    <td>@Model.Product.UpdatedAt.ToString("MMM dd, yyyy")</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Product ID:</td>
+                                    <td>@Model.Product.Id</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
