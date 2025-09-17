@@ -1,4 +1,4 @@
-@model InventoryManagement.WebUI.ViewModels.Products.ProductDetailsViewModel
+@model InventoryManagement.WebUI.ViewModels.Product.ProductDetailsViewModel
 @{
     ViewData["Title"] = Model.PageTitle;
 }
@@ -196,14 +196,14 @@
                                                 <tr>
                                                     <td class="text-muted">@transaction.TransactionDate.ToString("MM/dd/yyyy HH:mm")</td>
                                                     <td>
-                                                        <span class="badge @(transaction.Type == InventoryManagement.Domain.Enums.TransactionType.StockIn ? "bg-success" : 
-                                                                    transaction.Type == InventoryManagement.Domain.Enums.TransactionType.StockOut ? "bg-danger" : "bg-warning")">
+                                                        <span class="badge @(transaction.Type == "StockIn" ? "bg-success" : 
+                                                                    transaction.Type == "StockOut" ? "bg-danger" : "bg-warning")">
                                                             @transaction.Type
                                                         </span>
                                                     </td>
                                                     <td class="text-center">
-                                                        <span class="@(transaction.Type == InventoryManagement.Domain.Enums.TransactionType.StockIn ? "text-success" : "text-danger")">
-                                                            @(transaction.Type == InventoryManagement.Domain.Enums.TransactionType.StockIn ? "+" : "-")@Math.Abs(transaction.Quantity)
+                                                        <span class="@(transaction.Type == "StockIn" ? "text-success" : "text-danger")">
+                                                            @(transaction.Type == "StockIn" ? "+" : "-")@Math.Abs(transaction.Quantity)
                                                         </span>
                                                     </td>
                                                     <td>@transaction.WarehouseName</td>
@@ -289,7 +289,7 @@
                                 </tr>
                                 <tr>
                                     <td class="fw-bold">Updated:</td>
-                                    <td>@Model.Product.UpdatedAt.ToString("MMM dd, yyyy")</td>
+                                    <td>@(Model.Product.UpdatedAt?.ToString("MMM dd, yyyy") ?? "Never")</td>
                                 </tr>
                                 <tr>
                                     <td class="fw-bold">Product ID:</td>

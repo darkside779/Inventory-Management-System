@@ -32,12 +32,13 @@ public class ViewModelMappingProfile : Profile
 
         // Product mappings - DTO to ViewModel and ViewModel to DTO
         CreateMap<ProductDto, ProductDetailsViewModel>()
-            .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.SKU ?? string.Empty))
-            .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.Price))
-            .ForMember(dest => dest.UnitOfMeasure, opt => opt.MapFrom(src => src.Unit ?? "Piece"))
+            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SKU ?? string.Empty))
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
+            .ForMember(dest => dest.Cost, opt => opt.MapFrom(src => src.Cost))
+            .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit ?? "Piece"))
             .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedAt))
             .ForMember(dest => dest.LastModified, opt => opt.MapFrom(src => src.UpdatedAt))
-            .ForMember(dest => dest.Supplier, opt => opt.MapFrom(src => src.SupplierName ?? string.Empty))
+            .ForMember(dest => dest.SupplierName, opt => opt.MapFrom(src => src.SupplierName ?? string.Empty))
             .ForMember(dest => dest.CurrentStock, opt => opt.MapFrom(src => src.TotalQuantity))
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName ?? "Uncategorized"))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name ?? string.Empty))
@@ -56,16 +57,39 @@ public class ViewModelMappingProfile : Profile
             .ForMember(dest => dest.Brand, opt => opt.Ignore());
         
         CreateMap<ProductDto, ProductEditViewModel>()
-            .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.SKU));
+            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SKU ?? string.Empty))
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
+            .ForMember(dest => dest.Cost, opt => opt.MapFrom(src => src.Cost))
+            .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit ?? "Piece"))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
+            .ForMember(dest => dest.CurrentStock, opt => opt.MapFrom(src => src.TotalQuantity))
+            .ForMember(dest => dest.Categories, opt => opt.Ignore())
+            .ForMember(dest => dest.Suppliers, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.Brand, opt => opt.Ignore())
+            .ForMember(dest => dest.SupplierId, opt => opt.MapFrom(src => src.SupplierId));
         
         CreateMap<ProductDto, ProductItemViewModel>()
-            .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.SKU));
+            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SKU));
+
+        CreateMap<ProductDto, DeleteProductViewModel>()
+            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SKU ?? string.Empty))
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
+            .ForMember(dest => dest.Cost, opt => opt.MapFrom(src => src.Cost))
+            .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit ?? "Piece"))
+            .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.LastModified, opt => opt.MapFrom(src => src.UpdatedAt))
+            .ForMember(dest => dest.CurrentStock, opt => opt.MapFrom(src => src.TotalQuantity))
+            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName ?? "Uncategorized"))
+            .ForMember(dest => dest.SupplierName, opt => opt.MapFrom(src => src.SupplierName ?? string.Empty));
         
         CreateMap<ProductCreateViewModel, CreateProductDto>()
-            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.Sku));
+            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SKU));
         
         CreateMap<ProductEditViewModel, UpdateProductDto>()
-            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.Sku));
+            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SKU));
         
         CreateMap<InventoryManagement.Application.Extensions.PagedResult<ProductDto>, InventoryManagement.WebUI.ViewModels.Products.ProductIndexViewModel>()
             .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src));

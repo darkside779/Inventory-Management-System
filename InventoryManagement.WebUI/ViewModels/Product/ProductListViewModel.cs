@@ -82,7 +82,7 @@ public class ProductItemViewModel
     public string Name { get; set; } = string.Empty;
 
     [Display(Name = "SKU")]
-    public string Sku { get; set; } = string.Empty;
+    public string SKU { get; set; } = string.Empty;
 
     [Display(Name = "Category")]
     public string CategoryName { get; set; } = string.Empty;

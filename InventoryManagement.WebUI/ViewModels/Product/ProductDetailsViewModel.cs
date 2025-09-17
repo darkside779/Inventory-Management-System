@@ -13,7 +13,7 @@ public class ProductDetailsViewModel : BaseViewModel
     public string Name { get; set; } = string.Empty;
 
     [Display(Name = "SKU")]
-    public string Sku { get; set; } = string.Empty;
+    public string SKU { get; set; } = string.Empty;
 
     [Display(Name = "Description")]
     public string? Description { get; set; }
@@ -21,9 +21,13 @@ public class ProductDetailsViewModel : BaseViewModel
     [Display(Name = "Category")]
     public string CategoryName { get; set; } = string.Empty;
 
-    [Display(Name = "Unit Price")]
+    [Display(Name = "Price")]
     [DataType(DataType.Currency)]
-    public decimal UnitPrice { get; set; }
+    public decimal Price { get; set; }
+
+    [Display(Name = "Cost")]
+    [DataType(DataType.Currency)]
+    public decimal? Cost { get; set; }
 
     [Display(Name = "Low Stock Threshold")]
     public int LowStockThreshold { get; set; }
@@ -40,8 +44,8 @@ public class ProductDetailsViewModel : BaseViewModel
     [Display(Name = "Brand")]
     public string? Brand { get; set; }
 
-    [Display(Name = "Unit of Measure")]
-    public string? UnitOfMeasure { get; set; }
+    [Display(Name = "Unit")]
+    public string? Unit { get; set; }
 
     [Display(Name = "Weight (kg)")]
     public decimal? Weight { get; set; }
@@ -50,7 +54,7 @@ public class ProductDetailsViewModel : BaseViewModel
     public string? Dimensions { get; set; }
 
     [Display(Name = "Supplier")]
-    public string? Supplier { get; set; }
+    public string? SupplierName { get; set; }
 
     [Display(Name = "Created By")]
     public string CreatedBy { get; set; } = string.Empty;
@@ -75,13 +79,42 @@ public class ProductDetailsViewModel : BaseViewModel
 
     [Display(Name = "Stock Value")]
     [DataType(DataType.Currency)]
-    public decimal StockValue => CurrentStock * UnitPrice;
+    public decimal StockValue => CurrentStock * Price;
 
     [Display(Name = "Is Low Stock")]
     public bool IsLowStock => CurrentStock <= LowStockThreshold;
 
     // Recent inventory transactions
     public List<RecentTransactionViewModel> RecentTransactions { get; set; } = new();
+
+    // Inventory levels by warehouse
+    public List<InventoryLevelViewModel> InventoryLevels { get; set; } = new();
+
+    // Permissions
+    public bool CanEditProduct { get; set; } = true;
+    public bool CanDeleteProduct { get; set; } = true;
+
+    // Create a nested Product object for backward compatibility with views
+    public ProductSummary Product => new ProductSummary
+    {
+        Id = this.Id,
+        Name = this.Name,
+        SKU = this.SKU,
+        Description = this.Description,
+        CategoryName = this.CategoryName,
+        Price = this.Price,
+        Cost = this.Cost,
+        LowStockThreshold = this.LowStockThreshold,
+        IsActive = this.IsActive,
+        Barcode = this.Barcode,
+        Brand = this.Brand,
+        Unit = this.Unit,
+        Weight = this.Weight,
+        Dimensions = this.Dimensions,
+        SupplierName = this.SupplierName,
+        CreatedAt = this.CreatedDate,
+        UpdatedAt = this.LastModified
+    };
 
     // Summary statistics
     [Display(Name = "Total Stock In (30 days)")]
@@ -119,8 +152,44 @@ public class RecentTransactionViewModel
 {
     public int Id { get; set; }
     public DateTime TransactionDate { get; set; }
-    public string TransactionType { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
     public int Quantity { get; set; }
-    public string Location { get; set; } = string.Empty;
-    public string CreatedBy { get; set; } = string.Empty;
+    public string WarehouseName { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
+    public string? Notes { get; set; }
+}
+
+/// <summary>
+/// Inventory level for product details view
+/// </summary>
+public class InventoryLevelViewModel
+{
+    public string WarehouseName { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+    public int ReservedQuantity { get; set; }
+    public string Status { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Product summary for backward compatibility
+/// </summary>
+public class ProductSummary
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string SKU { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string CategoryName { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public decimal? Cost { get; set; }
+    public int LowStockThreshold { get; set; }
+    public bool IsActive { get; set; }
+    public string? Barcode { get; set; }
+    public string? Brand { get; set; }
+    public string? Unit { get; set; }
+    public decimal? Weight { get; set; }
+    public string? Dimensions { get; set; }
+    public string? SupplierName { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }

@@ -55,9 +55,9 @@ public class MappingProfile : Profile
 
         // Product mappings
         CreateMap<Product, ProductDto>()
-            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
+            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : string.Empty))
             .ForMember(dest => dest.SupplierName, opt => opt.MapFrom(src => src.Supplier != null ? src.Supplier.Name : null))
-            .ForMember(dest => dest.TotalQuantity, opt => opt.MapFrom(src => src.InventoryItems.Sum(i => i.Quantity)))
+            .ForMember(dest => dest.TotalQuantity, opt => opt.MapFrom(src => src.InventoryItems != null ? src.InventoryItems.Sum(i => i.Quantity) : 0))
             .ForMember(dest => dest.ProfitMarginPercentage, opt => opt.MapFrom(src => 
                 src.Cost.HasValue && src.Cost > 0 
                     ? ((src.Price - src.Cost.Value) / src.Cost.Value) * 100 

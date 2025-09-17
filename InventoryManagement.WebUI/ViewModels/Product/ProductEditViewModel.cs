@@ -19,7 +19,7 @@ public class ProductEditViewModel : BaseViewModel
     [Required(ErrorMessage = "SKU is required")]
     [StringLength(50, ErrorMessage = "SKU cannot exceed 50 characters")]
     [Display(Name = "SKU")]
-    public string Sku { get; set; } = string.Empty;
+    public string SKU { get; set; } = string.Empty;
 
     [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
     [Display(Name = "Description")]
@@ -29,11 +29,16 @@ public class ProductEditViewModel : BaseViewModel
     [Display(Name = "Category")]
     public int CategoryId { get; set; }
 
-    [Required(ErrorMessage = "Unit price is required")]
-    [Range(0.01, double.MaxValue, ErrorMessage = "Unit price must be greater than 0")]
-    [Display(Name = "Unit Price")]
+    [Required(ErrorMessage = "Price is required")]
+    [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
+    [Display(Name = "Price")]
     [DataType(DataType.Currency)]
-    public decimal UnitPrice { get; set; }
+    public decimal Price { get; set; }
+
+    [Range(0, double.MaxValue, ErrorMessage = "Cost must be 0 or greater")]
+    [Display(Name = "Cost")]
+    [DataType(DataType.Currency)]
+    public decimal? Cost { get; set; }
 
     [Required(ErrorMessage = "Low stock threshold is required")]
     [Range(0, int.MaxValue, ErrorMessage = "Low stock threshold must be 0 or greater")]
@@ -51,9 +56,9 @@ public class ProductEditViewModel : BaseViewModel
     [Display(Name = "Brand")]
     public string? Brand { get; set; }
 
-    [StringLength(50, ErrorMessage = "Unit of measure cannot exceed 50 characters")]
-    [Display(Name = "Unit of Measure")]
-    public string? UnitOfMeasure { get; set; }
+    [StringLength(50, ErrorMessage = "Unit cannot exceed 50 characters")]
+    [Display(Name = "Unit")]
+    public string? Unit { get; set; }
 
     [Range(0, double.MaxValue, ErrorMessage = "Weight must be 0 or greater")]
     [Display(Name = "Weight (kg)")]
@@ -63,9 +68,8 @@ public class ProductEditViewModel : BaseViewModel
     [Display(Name = "Dimensions (L×W×H)")]
     public string? Dimensions { get; set; }
 
-    [StringLength(100, ErrorMessage = "Supplier cannot exceed 100 characters")]
     [Display(Name = "Supplier")]
-    public string? Supplier { get; set; }
+    public int? SupplierId { get; set; }
 
     // Read-only properties for display
     [Display(Name = "Created By")]
@@ -73,11 +77,11 @@ public class ProductEditViewModel : BaseViewModel
 
     [Display(Name = "Created Date")]
     [DataType(DataType.DateTime)]
-    public DateTime CreatedDate { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     [Display(Name = "Last Modified")]
     [DataType(DataType.DateTime)]
-    public DateTime? LastModified { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     [Display(Name = "Modified By")]
     public string? ModifiedBy { get; set; }
@@ -91,7 +95,7 @@ public class ProductEditViewModel : BaseViewModel
 
     // Navigation properties for dropdowns
     public List<SelectListItem> Categories { get; set; } = new();
-    public List<SelectListItem> UnitsOfMeasure { get; set; } = new();
+    public List<SelectListItem> Suppliers { get; set; } = new();
 
     public ProductEditViewModel()
     {

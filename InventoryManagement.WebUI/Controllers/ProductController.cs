@@ -2,14 +2,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using AutoMapper;
-using InventoryManagement.Application.Features.Products.Queries.GetAllProducts;
-using InventoryManagement.Application.Features.Products.Queries.GetProductById;
 using InventoryManagement.Application.Features.Products.Commands.CreateProduct;
 using InventoryManagement.Application.Features.Products.Commands.UpdateProduct;
 using InventoryManagement.Application.Features.Products.Commands.DeleteProduct;
+using InventoryManagement.Application.Features.Products.Queries.GetProductById;
+using InventoryManagement.Application.Features.Products.Queries.GetAllProducts;
+using InventoryManagement.Application.Features.Categories.Queries.GetAllCategories;
+using InventoryManagement.Application.Features.Suppliers.Queries.GetAllSuppliers;
+using InventoryManagement.WebUI.ViewModels.Product;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using InventoryManagement.Application.DTOs;
+using ProductModels = InventoryManagement.WebUI.ViewModels.Product;
 using InventoryManagement.WebUI.ViewModels.Products;
-using InventoryManagement.WebUI.Controllers;
 
 namespace InventoryManagement.WebUI.Controllers;
 
@@ -79,7 +83,7 @@ public class ProductController : BaseController
                 return NotFound($"Product with ID {id} not found.");
             }
 
-            var viewModel = _mapper.Map<ProductDetailsViewModel>(productDto);
+            var viewModel = _mapper.Map<ProductModels.ProductDetailsViewModel>(productDto);
             return View(viewModel);
         }
         catch (Exception ex)
@@ -93,14 +97,14 @@ public class ProductController : BaseController
     /// </summary>
     [HttpGet]
     [Authorize(Roles = "Manager,Administrator")]
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
         try
         {
             LogUserAction("Accessed Product Creation Form");
 
-            var viewModel = new CreateProductViewModel();
-            PopulateDropdowns(viewModel);
+            var viewModel = new ProductModels.ProductCreateViewModel();
+            await PopulateDropdowns(viewModel);
             
             return View(viewModel);
         }
@@ -116,13 +120,13 @@ public class ProductController : BaseController
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Manager,Administrator")]
-    public async Task<IActionResult> Create(CreateProductViewModel model)
+    public async Task<IActionResult> Create(ProductModels.ProductCreateViewModel model)
     {
         try
         {
             if (!ModelState.IsValid)
             {
-                PopulateDropdowns(model);
+                await PopulateDropdowns(model);
                 return View(model);
             }
 
@@ -139,7 +143,7 @@ public class ProductController : BaseController
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError("", ex.Message);
-            PopulateDropdowns(model);
+            await PopulateDropdowns(model);
             return View(model);
         }
         catch (Exception ex)
@@ -167,8 +171,8 @@ public class ProductController : BaseController
                 return NotFound($"Product with ID {id} not found.");
             }
 
-            var viewModel = _mapper.Map<EditProductViewModel>(productDto);
-            PopulateDropdowns(viewModel);
+            var viewModel = _mapper.Map<ProductModels.ProductEditViewModel>(productDto);
+            await PopulateDropdowns(viewModel);
             
             return View(viewModel);
         }
@@ -184,7 +188,7 @@ public class ProductController : BaseController
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Manager,Administrator")]
-    public async Task<IActionResult> Edit(int id, EditProductViewModel model)
+    public async Task<IActionResult> Edit(int id, ProductModels.ProductEditViewModel model)
     {
         try
         {
@@ -195,7 +199,7 @@ public class ProductController : BaseController
 
             if (!ModelState.IsValid)
             {
-                PopulateDropdowns(model);
+                await PopulateDropdowns(model);
                 return View(model);
             }
 
@@ -212,7 +216,7 @@ public class ProductController : BaseController
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError("", ex.Message);
-            PopulateDropdowns(model);
+            await PopulateDropdowns(model);
             return View(model);
         }
         catch (Exception ex)
@@ -240,7 +244,7 @@ public class ProductController : BaseController
                 return NotFound($"Product with ID {id} not found.");
             }
 
-            var viewModel = _mapper.Map<DeleteProductViewModel>(productDto);
+            var viewModel = _mapper.Map<ProductModels.DeleteProductViewModel>(productDto);
             return View(viewModel);
         }
         catch (Exception ex)
@@ -329,11 +333,42 @@ public class ProductController : BaseController
     /// <summary>
     /// Populate dropdown lists for create/edit forms
     /// </summary>
-    private void PopulateDropdowns(dynamic viewModel)
+    private async Task PopulateDropdowns(dynamic viewModel)
     {
-        // This would need category and supplier queries to be implemented
-        // For now, create empty lists
-        viewModel.Categories = new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
-        viewModel.Suppliers = new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+        try
+        {
+            // Get categories
+            var categoriesQuery = new GetAllCategoriesQuery { ActiveOnly = true };
+            var categories = await _mediator.Send(categoriesQuery);
+            viewModel.Categories = categories.Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name
+            }).ToList();
+
+            // Get suppliers  
+            var suppliersQuery = new GetAllSuppliersQuery { ActiveOnly = true, PageSize = 1000 };
+            var suppliersResponse = await _mediator.Send(suppliersQuery);
+            viewModel.Suppliers = suppliersResponse.Suppliers.Select(s => new SelectListItem
+            {
+                Value = s.Id.ToString(),
+                Text = s.Name
+            }).ToList();
+
+            // Add empty option for supplier (since it's optional)
+            viewModel.Suppliers.Insert(0, new SelectListItem
+            {
+                Value = "",
+                Text = "Select Supplier (Optional)",
+                Selected = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error populating dropdowns for product form");
+            // Fallback to empty lists
+            viewModel.Categories = new List<SelectListItem>();
+            viewModel.Suppliers = new List<SelectListItem>();
+        }
     }
 }
