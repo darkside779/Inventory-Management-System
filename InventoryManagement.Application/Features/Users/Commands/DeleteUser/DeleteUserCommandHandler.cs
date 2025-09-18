@@ -11,11 +11,13 @@ public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, bool>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<DeleteUserCommandHandler> _logger;
+    private readonly IIdentityService _identityService;
 
-    public DeleteUserCommandHandler(IUnitOfWork unitOfWork, ILogger<DeleteUserCommandHandler> logger)
+    public DeleteUserCommandHandler(IUnitOfWork unitOfWork, ILogger<DeleteUserCommandHandler> logger, IIdentityService identityService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _identityService = identityService;
     }
 
     public async Task<bool> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
@@ -41,16 +43,27 @@ public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, bool>
 
             if (request.HardDelete)
             {
-                // Hard delete - remove from database
+                // Hard delete - remove from both systems
                 _unitOfWork.Users.Delete(user);
-                _logger.LogInformation("User with ID {UserId} marked for hard deletion", request.Id);
+                
+                // Also delete from Identity system
+                var identityDeleteResult = await _identityService.DeleteUserByEmailAsync(user.Email, cancellationToken);
+                if (!identityDeleteResult)
+                {
+                    _logger.LogWarning("Failed to delete Identity user for email: {Email}", user.Email);
+                }
+                
+                _logger.LogInformation("User with ID {UserId} marked for hard deletion from both systems", request.Id);
             }
             else
             {
-                // Soft delete - mark as inactive
+                // Soft delete - mark as inactive in custom table and disable in Identity
                 user.IsActive = false;
                 user.UpdatedAt = DateTime.UtcNow;
                 _unitOfWork.Users.Update(user);
+                
+                // Note: For soft delete, we keep the Identity user but we could disable it
+                // For now, we'll just mark the custom user as inactive
                 _logger.LogInformation("User with ID {UserId} deactivated (soft delete)", request.Id);
             }
 

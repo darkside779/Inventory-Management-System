@@ -78,6 +78,9 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
+// Register Identity Service
+builder.Services.AddScoped<IIdentityService, IdentityService>();
+
 // Configure Identity services
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {

@@ -40,7 +40,7 @@ public class UserController : BaseController
             {
                 SearchTerm = filter.SearchTerm,
                 Role = filter.Role,
-                IsActive = filter.IsActive,
+                IsActive = filter.IsActive ?? true, // Default to showing only active users
                 CreatedFrom = filter.CreatedFrom,
                 CreatedTo = filter.CreatedTo,
                 HasRecentLogin = filter.HasRecentLogin,
@@ -330,7 +330,22 @@ public class UserController : BaseController
                 return RedirectToAction(nameof(Details), new { id });
             }
 
-            return View(user);
+            // Create ViewModel for Delete view
+            var viewModel = new ViewModels.User.UserDetailsViewModel
+            {
+                Id = user.Id.ToString(),
+                UserName = user.Username,
+                Email = user.Email,
+                FullName = user.FirstName + " " + user.LastName,
+                PhoneNumber = "", // Not available in UserDto
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                CreatedDate = user.CreatedAt,
+                LastLoginDate = user.LastLoginAt,
+                RecentActivities = new List<ViewModels.User.UserActivityViewModel>()
+            };
+
+            return View(viewModel);
         }
         catch (Exception ex)
         {

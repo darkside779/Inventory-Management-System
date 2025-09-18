@@ -1,0 +1,185 @@
+@model InventoryManagement.WebUI.ViewModels.User.UserDetailsViewModel
+
+@{
+    ViewData["Title"] = "Delete User";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-user-times text-danger"></i> Delete User
+            </h1>
+            <p class="text-muted">Permanently remove user from the system</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Users
+            </a>
+        </div>
+    </div>
+
+    <!-- Warning Alert -->
+    <div class="alert alert-danger border-left-danger" role="alert">
+        <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                    <i class="fas fa-exclamation-triangle"></i> Warning
+                </div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                    This action cannot be undone!
+                </div>
+                <p class="mb-0">All data associated with this user will be permanently deleted.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Information Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-user"></i> User Details
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Full Name:</dt>
+                        <dd class="col-sm-8">
+                            <strong>@Model.FullName</strong>
+                        </dd>
+
+                        <dt class="col-sm-4">Username:</dt>
+                        <dd class="col-sm-8">
+                            <code>@Model.UserName</code>
+                        </dd>
+
+                        <dt class="col-sm-4">Email:</dt>
+                        <dd class="col-sm-8">
+                            <a href="mailto:@Model.Email">@Model.Email</a>
+                        </dd>
+
+                        <dt class="col-sm-4">Phone:</dt>
+                        <dd class="col-sm-8">
+                            @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                            {
+                                <a href="tel:@Model.PhoneNumber">@Model.PhoneNumber</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not provided</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Role:</dt>
+                        <dd class="col-sm-8">
+                            @{
+                                var roleBadgeClass = Model.Role switch
+                                {
+                                    "Administrator" => "badge badge-danger text-white",
+                                    "Manager" => "badge badge-warning text-dark",
+                                    "Staff" => "badge badge-info text-white",
+                                    _ => "badge badge-secondary text-white"
+                                };
+                            }
+                            <span class="@roleBadgeClass">@Model.Role</span>
+                        </dd>
+
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge badge-success text-white">
+                                    <i class="fas fa-check-circle"></i> Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-secondary text-white">
+                                    <i class="fas fa-times-circle"></i> Inactive
+                                </span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4">Created:</dt>
+                        <dd class="col-sm-8">
+                            <small class="text-muted">
+                                @Model.CreatedDate.ToString("MMM dd, yyyy HH:mm")
+                            </small>
+                        </dd>
+
+                        <dt class="col-sm-4">Last Login:</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.LastLoginDate.HasValue)
+                            {
+                                <small class="text-muted">
+                                    @Model.LastLoginDate.Value.ToString("MMM dd, yyyy HH:mm")
+                                </small>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Never</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deletion Confirmation Form -->
+    <div class="card shadow border-left-danger">
+        <div class="card-header py-3 bg-danger">
+            <h6 class="m-0 font-weight-bold text-white">
+                <i class="fas fa-trash"></i> Confirm Deletion
+            </h6>
+        </div>
+        <div class="card-body">
+            <p class="text-gray-900 mb-4">
+                Are you sure you want to delete <strong>@Model.FullName</strong>? 
+                This action will:
+            </p>
+            
+            <ul class="text-gray-900 mb-4">
+                <li>Permanently remove the user account</li>
+                <li>Remove all associated login credentials</li>
+                <li>Delete user permissions and role assignments</li>
+                <li>This action <strong>cannot be reversed</strong></li>
+            </ul>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <form asp-action="DeleteConfirmed" asp-route-id="@Model.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger btn-block" 
+                                onclick="return confirm('Are you absolutely sure you want to delete this user? This action cannot be undone!');">
+                            <i class="fas fa-trash"></i> Yes, Delete User
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <a asp-action="Index" class="btn btn-secondary btn-block">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Additional confirmation for delete action
+        $('form[asp-action="DeleteConfirmed"]').on('submit', function(e) {
+            if (!confirm('This will permanently delete the user and all associated data. Are you absolutely certain?')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+}

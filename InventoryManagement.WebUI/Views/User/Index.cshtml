@@ -24,7 +24,7 @@
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">
                 <i class="fas fa-filter"></i> Filters
-                <button class="btn btn-sm btn-outline-primary float-right" type="button" data-toggle="collapse" data-target="#filterPanel">
+                <button class="btn btn-sm btn-outline-primary float-right" type="button" data-bs-toggle="collapse" data-bs-target="#filterPanel" data-toggle="collapse" data-target="#filterPanel">
                     <i class="fas fa-chevron-down"></i>
                 </button>
             </h6>
@@ -354,22 +354,22 @@
     {
         var badgeClass = role switch
         {
-            UserRole.Administrator => "badge-danger",
-            UserRole.Manager => "badge-warning",
-            UserRole.Staff => "badge-info",
-            _ => "badge-secondary"
+            UserRole.Administrator => "badge badge-danger text-white",
+            UserRole.Manager => "badge badge-warning text-dark",
+            UserRole.Staff => "badge badge-info text-white",
+            _ => "badge badge-secondary text-white"
         };
 
-        return Html.Raw($"<span class=\"badge {badgeClass}\">{role}</span>");
+        return Html.Raw($"<span class=\"{badgeClass}\">{role}</span>");
     }
 
     Microsoft.AspNetCore.Html.IHtmlContent GetStatusBadge(bool isActive)
     {
-        var badgeClass = isActive ? "badge-success" : "badge-secondary";
+        var badgeClass = isActive ? "badge badge-success text-white" : "badge badge-secondary text-white";
         var text = isActive ? "Active" : "Inactive";
         var icon = isActive ? "fa-check-circle" : "fa-times-circle";
 
-        return Html.Raw($"<span class=\"badge {badgeClass}\"><i class=\"fas {icon}\"></i> {text}</span>");
+        return Html.Raw($"<span class=\"{badgeClass}\"><i class=\"fas {icon}\"></i> {text}</span>");
     }
 
     bool CanEditUser(InventoryManagement.Application.DTOs.UserDto user)
