@@ -6,6 +6,7 @@ using InventoryManagement.Application.Features.Reports.Queries.GetTransactionRep
 using InventoryManagement.Application.Features.Products.Queries.GetAllProducts;
 using InventoryManagement.Application.Features.Categories.Queries.GetAllCategories;
 using InventoryManagement.Application.Features.Warehouses.Queries.GetAllWarehouses;
+using InventoryManagement.Application.Features.Users.Queries.GetUsers;
 using InventoryManagement.WebUI.ViewModels.Reports;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -124,9 +125,6 @@ public class ReportsController : BaseController
                 return View(new InventoryReportViewModel());
             }
 
-            // Load dropdown data
-            await LoadReportDropdownDataAsync(filter);
-
             var viewModel = new InventoryReportViewModel
             {
                 Items = response.Items,
@@ -140,13 +138,23 @@ public class ReportsController : BaseController
                 SortDirection = sortDirection
             };
 
+            // Load dropdown data after creating viewModel
+            await LoadReportDropdownDataAsync(filter);
+
             return View(viewModel);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading inventory report");
             TempData["ErrorMessage"] = "An error occurred while loading the inventory report.";
-            return View(new InventoryReportViewModel());
+            
+            // Still load dropdown data even when there's an error
+            await LoadReportDropdownDataAsync(filter ?? new InventoryReportFilterViewModel());
+            
+            return View(new InventoryReportViewModel 
+            { 
+                Filter = filter ?? new InventoryReportFilterViewModel() 
+            });
         }
     }
 
@@ -201,9 +209,6 @@ public class ReportsController : BaseController
                 return View(new TransactionReportViewModel());
             }
 
-            // Load dropdown data
-            await LoadReportDropdownDataAsync(filter);
-
             var viewModel = new TransactionReportViewModel
             {
                 Items = response.Items,
@@ -217,13 +222,23 @@ public class ReportsController : BaseController
                 SortDirection = sortDirection
             };
 
+            // Load dropdown data after creating viewModel
+            await LoadReportDropdownDataAsync(filter);
+
             return View(viewModel);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading transaction report");
             TempData["ErrorMessage"] = "An error occurred while loading the transaction report.";
-            return View(new TransactionReportViewModel());
+            
+            // Still load dropdown data even when there's an error
+            await LoadReportDropdownDataAsync(filter ?? new TransactionReportFilterViewModel());
+            
+            return View(new TransactionReportViewModel 
+            { 
+                Filter = filter ?? new TransactionReportFilterViewModel() 
+            });
         }
     }
 
@@ -274,9 +289,6 @@ public class ReportsController : BaseController
                 return View(new ProductMovementReportViewModel());
             }
 
-            // Load dropdown data
-            await LoadReportDropdownDataAsync(filter);
-
             var viewModel = new ProductMovementReportViewModel
             {
                 Items = response.Items,
@@ -289,13 +301,23 @@ public class ReportsController : BaseController
                 SortDirection = sortDirection
             };
 
+            // Load dropdown data after creating viewModel
+            await LoadReportDropdownDataAsync(filter);
+
             return View(viewModel);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading product movement report");
             TempData["ErrorMessage"] = "An error occurred while loading the product movement report.";
-            return View(new ProductMovementReportViewModel());
+            
+            // Still load dropdown data even when there's an error
+            await LoadReportDropdownDataAsync(filter ?? new ProductMovementReportFilterViewModel());
+            
+            return View(new ProductMovementReportViewModel 
+            { 
+                Filter = filter ?? new ProductMovementReportFilterViewModel() 
+            });
         }
     }
 
@@ -433,37 +455,97 @@ public class ReportsController : BaseController
     {
         try
         {
+            // Initialize empty lists in case of errors
+            ViewBag.Products = new SelectList(new List<object>(), "Value", "Text");
+            ViewBag.Categories = new SelectList(new List<object>(), "Value", "Text");
+            ViewBag.Warehouses = new SelectList(new List<object>(), "Value", "Text");
+
             // Load Products
-            var productsQuery = new GetAllProductsQuery 
-            { 
-                PageNumber = 1, 
-                PageSize = 1000, 
-                ActiveOnly = true 
-            };
-            var productsResponse = await _mediator.Send(productsQuery);
-            var products = productsResponse.Items.Select(p => new { Value = p.Id.ToString(), Text = $"{p.Name} - {p.SKU}" });
-            ViewBag.Products = new SelectList(products, "Value", "Text");
+            try
+            {
+                var productsQuery = new GetAllProductsQuery 
+                { 
+                    PageNumber = 1, 
+                    PageSize = 1000, 
+                    ActiveOnly = true 
+                };
+                var productsResponse = await _mediator.Send(productsQuery);
+                if (productsResponse?.Items != null)
+                {
+                    var products = productsResponse.Items.Select(p => new { Value = p.Id.ToString(), Text = $"{p.Name} - {p.SKU}" });
+                    ViewBag.Products = new SelectList(products, "Value", "Text");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading products for dropdown");
+            }
 
             // Load Categories
-            var categoriesQuery = new GetAllCategoriesQuery { ActiveOnly = true };
-            var categories = await _mediator.Send(categoriesQuery);
-            var categoryList = categories.Select(c => new { Value = c.Id.ToString(), Text = c.Name });
-            ViewBag.Categories = new SelectList(categoryList, "Value", "Text");
+            try
+            {
+                var categoriesQuery = new GetAllCategoriesQuery { ActiveOnly = true };
+                var categories = await _mediator.Send(categoriesQuery);
+                if (categories != null)
+                {
+                    var categoryList = categories.Select(c => new { Value = c.Id.ToString(), Text = c.Name });
+                    ViewBag.Categories = new SelectList(categoryList, "Value", "Text");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading categories for dropdown");
+            }
 
             // Load Warehouses
-            var warehousesQuery = new GetAllWarehousesQuery 
-            { 
-                PageNumber = 1, 
-                PageSize = 1000, 
-                ActiveOnly = true 
-            };
-            var warehousesResponse = await _mediator.Send(warehousesQuery);
-            var warehouses = warehousesResponse.Warehouses.Select(w => new { Value = w.Id.ToString(), Text = w.Name });
-            ViewBag.Warehouses = new SelectList(warehouses, "Value", "Text");
+            try
+            {
+                var warehousesQuery = new GetAllWarehousesQuery 
+                { 
+                    PageNumber = 1, 
+                    PageSize = 1000, 
+                    ActiveOnly = true 
+                };
+                var warehousesResponse = await _mediator.Send(warehousesQuery);
+                if (warehousesResponse?.Warehouses != null)
+                {
+                    var warehouses = warehousesResponse.Warehouses.Select(w => new { Value = w.Id.ToString(), Text = w.Name });
+                    ViewBag.Warehouses = new SelectList(warehouses, "Value", "Text");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading warehouses for dropdown");
+            }
 
             if (filter is TransactionReportFilterViewModel)
             {
-                ViewBag.Users = new SelectList(new List<object>(), "Value", "Text");
+                // Load Users
+                try
+                {
+                    var usersQuery = new GetUsersQuery 
+                    { 
+                        Page = 1, 
+                        PageSize = 1000, 
+                        IsActive = true 
+                    };
+                    var usersResponse = await _mediator.Send(usersQuery);
+                    if (usersResponse?.Users != null)
+                    {
+                        var users = usersResponse.Users.Select(u => new { Value = u.Id.ToString(), Text = u.FullName });
+                        ViewBag.Users = new SelectList(users, "Value", "Text");
+                    }
+                    else
+                    {
+                        ViewBag.Users = new SelectList(new List<object>(), "Value", "Text");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error loading users for dropdown");
+                    ViewBag.Users = new SelectList(new List<object>(), "Value", "Text");
+                }
+
                 ViewBag.TransactionTypes = new SelectList(new[]
                 {
                     new { Value = "StockIn", Text = "Stock In" },

@@ -208,32 +208,127 @@ public class GetInventoryReportQueryHandler : IRequestHandler<GetInventoryReport
 
     private System.Linq.Expressions.Expression<Func<Domain.Entities.Inventory, bool>>? BuildFilter(ReportFilterDto filter)
     {
-        System.Linq.Expressions.Expression<Func<Domain.Entities.Inventory, bool>>? expression = null;
+        // Start with base filter
+        System.Linq.Expressions.Expression<Func<Domain.Entities.Inventory, bool>> expression = i => i.IsActive;
 
-        expression = i => i.IsActive;
-
+        // Apply individual filters - Entity Framework can handle these properly
         if (filter.ProductIds?.Any() == true)
         {
-            var previousExpression = expression;
-            expression = i => previousExpression.Compile()(i) && filter.ProductIds.Contains(i.ProductId);
+            var productIds = filter.ProductIds;
+            expression = i => i.IsActive && productIds.Contains(i.ProductId);
         }
 
         if (filter.WarehouseIds?.Any() == true)
         {
-            var previousExpression = expression;
-            expression = i => previousExpression.Compile()(i) && filter.WarehouseIds.Contains(i.WarehouseId);
+            var warehouseIds = filter.WarehouseIds;
+            if (filter.ProductIds?.Any() == true)
+            {
+                var productIds = filter.ProductIds;
+                expression = i => i.IsActive && productIds.Contains(i.ProductId) && warehouseIds.Contains(i.WarehouseId);
+            }
+            else
+            {
+                expression = i => i.IsActive && warehouseIds.Contains(i.WarehouseId);
+            }
+        }
+
+        if (filter.CategoryIds?.Any() == true)
+        {
+            var categoryIds = filter.CategoryIds;
+            if (filter.ProductIds?.Any() == true && filter.WarehouseIds?.Any() == true)
+            {
+                var productIds = filter.ProductIds;
+                var warehouseIds = filter.WarehouseIds;
+                expression = i => i.IsActive && productIds.Contains(i.ProductId) && warehouseIds.Contains(i.WarehouseId) && i.Product != null && categoryIds.Contains(i.Product.CategoryId);
+            }
+            else if (filter.ProductIds?.Any() == true)
+            {
+                var productIds = filter.ProductIds;
+                expression = i => i.IsActive && productIds.Contains(i.ProductId) && i.Product != null && categoryIds.Contains(i.Product.CategoryId);
+            }
+            else if (filter.WarehouseIds?.Any() == true)
+            {
+                var warehouseIds = filter.WarehouseIds;
+                expression = i => i.IsActive && warehouseIds.Contains(i.WarehouseId) && i.Product != null && categoryIds.Contains(i.Product.CategoryId);
+            }
+            else
+            {
+                expression = i => i.IsActive && i.Product != null && categoryIds.Contains(i.Product.CategoryId);
+            }
         }
 
         if (filter.LowStockOnly == true)
         {
-            var previousExpression = expression;
-            expression = i => previousExpression.Compile()(i) && i.Product != null && i.Quantity <= i.Product.LowStockThreshold;
+            // Build the low stock condition based on existing filters
+            if (filter.CategoryIds?.Any() == true && filter.ProductIds?.Any() == true && filter.WarehouseIds?.Any() == true)
+            {
+                var categoryIds = filter.CategoryIds;
+                var productIds = filter.ProductIds;
+                var warehouseIds = filter.WarehouseIds;
+                expression = i => i.IsActive && productIds.Contains(i.ProductId) && warehouseIds.Contains(i.WarehouseId) && i.Product != null && categoryIds.Contains(i.Product.CategoryId) && i.Quantity <= i.Product.LowStockThreshold;
+            }
+            else if (filter.ProductIds?.Any() == true && filter.WarehouseIds?.Any() == true)
+            {
+                var productIds = filter.ProductIds;
+                var warehouseIds = filter.WarehouseIds;
+                expression = i => i.IsActive && productIds.Contains(i.ProductId) && warehouseIds.Contains(i.WarehouseId) && i.Product != null && i.Quantity <= i.Product.LowStockThreshold;
+            }
+            else if (filter.CategoryIds?.Any() == true)
+            {
+                var categoryIds = filter.CategoryIds;
+                expression = i => i.IsActive && i.Product != null && categoryIds.Contains(i.Product.CategoryId) && i.Quantity <= i.Product.LowStockThreshold;
+            }
+            else if (filter.ProductIds?.Any() == true)
+            {
+                var productIds = filter.ProductIds;
+                expression = i => i.IsActive && productIds.Contains(i.ProductId) && i.Product != null && i.Quantity <= i.Product.LowStockThreshold;
+            }
+            else if (filter.WarehouseIds?.Any() == true)
+            {
+                var warehouseIds = filter.WarehouseIds;
+                expression = i => i.IsActive && warehouseIds.Contains(i.WarehouseId) && i.Product != null && i.Quantity <= i.Product.LowStockThreshold;
+            }
+            else
+            {
+                expression = i => i.IsActive && i.Product != null && i.Quantity <= i.Product.LowStockThreshold;
+            }
         }
 
         if (filter.OutOfStockOnly == true)
         {
-            var previousExpression = expression;
-            expression = i => previousExpression.Compile()(i) && i.Quantity <= 0;
+            // Build the out of stock condition based on existing filters
+            if (filter.CategoryIds?.Any() == true && filter.ProductIds?.Any() == true && filter.WarehouseIds?.Any() == true)
+            {
+                var categoryIds = filter.CategoryIds;
+                var productIds = filter.ProductIds;
+                var warehouseIds = filter.WarehouseIds;
+                expression = i => i.IsActive && productIds.Contains(i.ProductId) && warehouseIds.Contains(i.WarehouseId) && i.Product != null && categoryIds.Contains(i.Product.CategoryId) && i.Quantity <= 0;
+            }
+            else if (filter.ProductIds?.Any() == true && filter.WarehouseIds?.Any() == true)
+            {
+                var productIds = filter.ProductIds;
+                var warehouseIds = filter.WarehouseIds;
+                expression = i => i.IsActive && productIds.Contains(i.ProductId) && warehouseIds.Contains(i.WarehouseId) && i.Quantity <= 0;
+            }
+            else if (filter.CategoryIds?.Any() == true)
+            {
+                var categoryIds = filter.CategoryIds;
+                expression = i => i.IsActive && i.Product != null && categoryIds.Contains(i.Product.CategoryId) && i.Quantity <= 0;
+            }
+            else if (filter.ProductIds?.Any() == true)
+            {
+                var productIds = filter.ProductIds;
+                expression = i => i.IsActive && productIds.Contains(i.ProductId) && i.Quantity <= 0;
+            }
+            else if (filter.WarehouseIds?.Any() == true)
+            {
+                var warehouseIds = filter.WarehouseIds;
+                expression = i => i.IsActive && warehouseIds.Contains(i.WarehouseId) && i.Quantity <= 0;
+            }
+            else
+            {
+                expression = i => i.IsActive && i.Quantity <= 0;
+            }
         }
 
         return expression;
