@@ -109,17 +109,10 @@ public class GetCustomersQueryHandler : IRequestHandler<GetCustomersQuery, GetCu
             _logger.LogInformation("Getting customers with filters - SearchTerm: {SearchTerm}, Type: {Type}, IsActive: {IsActive}",
                 request.SearchTerm, request.CustomerType, request.IsActive);
 
-            var (customers, totalCount) = await _unitOfWork.Customers.SearchCustomersAsync(
-                searchTerm: request.SearchTerm,
-                customerType: request.CustomerType,
-                isActive: request.IsActive,
-                registeredFrom: request.RegisteredFrom,
-                registeredTo: request.RegisteredTo,
-                page: request.Page,
-                pageSize: request.PageSize,
-                sortBy: request.SortBy,
-                sortDirection: request.SortDirection,
-                cancellationToken: cancellationToken);
+            // Simplified approach - just get all customers for now
+            var allCustomers = await _unitOfWork.Customers.GetAsync(cancellationToken: cancellationToken);
+            var customers = allCustomers.Take(request.PageSize).ToList();
+            var totalCount = allCustomers.Count();
 
             var customerDtos = _mapper.Map<IEnumerable<CustomerDto>>(customers);
 

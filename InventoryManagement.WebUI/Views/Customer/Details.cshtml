@@ -1,0 +1,262 @@
+@model InventoryManagement.WebUI.ViewModels.Customer.CustomerDetailsViewModel
+@{
+    ViewData["Title"] = "Customer Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2 class="h3 mb-0">
+                <i class="fas fa-user text-info me-2"></i>Customer Details
+            </h2>
+            <p class="text-muted mb-0">View customer information and account summary</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Customers</a>
+                    </li>
+                    <li class="breadcrumb-item active">@Model.CustomerCode</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                    <i class="fas fa-edit me-1"></i>Edit Customer
+                </a>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to List
+                </a>
+                @if (User.IsInRole("Administrator"))
+                {
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-1"></i>Delete
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Customer Information Card -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Customer Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold">Customer Code:</td>
+                                    <td><code class="text-primary">@Model.CustomerCode</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Full Name:</td>
+                                    <td>@Model.FullName</td>
+                                </tr>
+                                @if (!string.IsNullOrEmpty(Model.CompanyName))
+                                {
+                                    <tr>
+                                        <td class="fw-bold">Company:</td>
+                                        <td>@Model.CompanyName</td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td class="fw-bold">Customer Type:</td>
+                                    <td>
+                                        @{
+                                            var typeBadgeClass = Model.CustomerType switch
+                                            {
+                                                "Individual" => "badge bg-info",
+                                                "Business" => "badge bg-warning text-dark",
+                                                "Corporate" => "badge bg-success",
+                                                _ => "badge bg-secondary"
+                                            };
+                                        }
+                                        <span class="@typeBadgeClass">@Model.CustomerType</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Status:</td>
+                                    <td>
+                                        @if (Model.IsActive)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                @if (!string.IsNullOrEmpty(Model.Email))
+                                {
+                                    <tr>
+                                        <td class="fw-bold">Email:</td>
+                                        <td>
+                                            <a href="mailto:@Model.Email">
+                                                <i class="fas fa-envelope text-muted me-1"></i>@Model.Email
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                {
+                                    <tr>
+                                        <td class="fw-bold">Phone:</td>
+                                        <td>
+                                            <i class="fas fa-phone text-muted me-1"></i>@Model.PhoneNumber
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Address))
+                                {
+                                    <tr>
+                                        <td class="fw-bold">Address:</td>
+                                        <td>@Model.Address</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.TaxId))
+                                {
+                                    <tr>
+                                        <td class="fw-bold">Tax ID:</td>
+                                        <td>@Model.TaxId</td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td class="fw-bold">Payment Terms:</td>
+                                    <td>@Model.PaymentTermsDays days</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6 class="text-primary">Notes:</h6>
+                                <div class="bg-light p-3 rounded">
+                                    @Model.Notes
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Summary Card -->
+        <div class="col-lg-4">
+            <!-- Account Summary -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-dollar-sign me-2"></i>Account Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-12 mb-3">
+                            <h6 class="text-muted">Current Balance</h6>
+                            @if (Model.Balance > 0)
+                            {
+                                <h4 class="text-danger">$@Model.Balance.ToString("N2")</h4>
+                                <small class="text-muted">Customer owes</small>
+                            }
+                            else if (Model.Balance < 0)
+                            {
+                                <h4 class="text-success">$@Model.Balance.ToString("N2")</h4>
+                                <small class="text-muted">Credit balance</small>
+                            }
+                            else
+                            {
+                                <h4 class="text-muted">$0.00</h4>
+                                <small class="text-muted">No balance</small>
+                            }
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td>Credit Limit:</td>
+                            <td class="text-end fw-bold">$@Model.CreditLimit.ToString("N2")</td>
+                        </tr>
+                        <tr>
+                            <td>Available Credit:</td>
+                            <td class="text-end fw-bold text-success">$@Model.AvailableCredit.ToString("N2")</td>
+                        </tr>
+                        <tr>
+                            <td>Total Purchases:</td>
+                            <td class="text-end fw-bold">$@Model.TotalPurchases.ToString("N2")</td>
+                        </tr>
+                    </table>
+
+                    @if (Model.IsOverCreditLimit)
+                    {
+                        <div class="alert alert-danger alert-sm mt-3">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Over Credit Limit!</strong>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Registration Info -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar me-2"></i>Registration Info
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td>Registered:</td>
+                            <td class="text-end">@Model.RegisteredDate.ToString("MMM dd, yyyy")</td>
+                        </tr>
+                        @if (Model.LastPurchaseDate.HasValue)
+                        {
+                            <tr>
+                                <td>Last Purchase:</td>
+                                <td class="text-end">@Model.LastPurchaseDate.Value.ToString("MMM dd, yyyy")</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td>Last Purchase:</td>
+                                <td class="text-end text-muted">Never</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Future: Invoice and Payment History Tables would go here -->
+</div>

@@ -1,0 +1,261 @@
+@model InventoryManagement.WebUI.ViewModels.Customer.EditCustomerViewModel
+@{
+    ViewData["Title"] = "Edit Customer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2 class="h3 mb-0">
+                <i class="fas fa-user-edit text-warning me-2"></i>Edit Customer
+            </h2>
+            <p class="text-muted mb-0">Update customer information</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Customers</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Details" asp-route-id="@Model.Id">@Model.CustomerCode</a>
+                    </li>
+                    <li class="breadcrumb-item active">Edit</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Customer Edit Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user me-2"></i>Edit Customer: @Model.CustomerCode
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CustomerCode" />
+                        
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-info-circle me-1"></i>Basic Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="CustomerCode" class="form-label">Customer Code</label>
+                                    <input asp-for="CustomerCode" class="form-control" readonly />
+                                    <small class="text-muted">Customer code cannot be changed</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="FullName" class="form-label">
+                                        Full Name <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="FullName" class="form-control" />
+                                    <span asp-validation-for="FullName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="CompanyName" class="form-label">Company Name</label>
+                                    <input asp-for="CompanyName" class="form-control" />
+                                    <span asp-validation-for="CompanyName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="CustomerType" class="form-label">
+                                        Customer Type <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="CustomerType" asp-items="Model.CustomerTypes" class="form-select">
+                                        <option value="">Select customer type</option>
+                                    </select>
+                                    <span asp-validation-for="CustomerType" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="TaxId" class="form-label">Tax ID</label>
+                                    <input asp-for="TaxId" class="form-control" />
+                                    <span asp-validation-for="TaxId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                        <label asp-for="IsActive" class="form-check-label">
+                                            Customer is Active
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Uncheck to deactivate this customer</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-address-book me-1"></i>Contact Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label">Email Address</label>
+                                    <input asp-for="Email" type="email" class="form-control" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                                    <input asp-for="PhoneNumber" type="tel" class="form-control" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label asp-for="Address" class="form-label">Address</label>
+                                    <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Financial Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-dollar-sign me-1"></i>Financial Information
+                                </h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="CreditLimit" class="form-label">Credit Limit</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="CreditLimit" type="number" step="0.01" min="0" class="form-control" />
+                                    </div>
+                                    <small class="text-muted">Maximum amount customer can owe</small>
+                                    <span asp-validation-for="CreditLimit" class="text-danger d-block"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="PaymentTermsDays" class="form-label">Payment Terms</label>
+                                    <select asp-for="PaymentTermsDays" asp-items="Model.PaymentTermsOptions" class="form-select">
+                                    </select>
+                                    <small class="text-muted">Number of days to pay invoices</small>
+                                    <span asp-validation-for="PaymentTermsDays" class="text-danger d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-sticky-note me-1"></i>Additional Information
+                                </h6>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label asp-for="Notes" class="form-label">Notes</label>
+                                    <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info">
+                                            <i class="fas fa-eye me-1"></i>View Details
+                                        </a>
+                                        <a asp-action="Index" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left me-1"></i>Back to List
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-warning me-2" onclick="resetForm()">
+                                            <i class="fas fa-undo me-1"></i>Reset
+                                        </button>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-save me-1"></i>Update Customer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function resetForm() {
+            if (confirm('Are you sure you want to reset the form? All changes will be lost.')) {
+                location.reload();
+            }
+        }
+
+        // Auto-format phone number
+        document.querySelector('input[name="PhoneNumber"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 6) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            } else if (value.length >= 3) {
+                value = value.replace(/(\d{3})(\d{3})/, '($1) $2');
+            }
+            e.target.value = value;
+        });
+
+        // Customer type change handler
+        document.querySelector('select[name="CustomerType"]').addEventListener('change', function(e) {
+            const companyField = document.querySelector('input[name="CompanyName"]').parentElement;
+            const taxIdField = document.querySelector('input[name="TaxId"]').parentElement;
+            
+            if (e.target.value === 'Individual') {
+                companyField.style.display = 'none';
+                taxIdField.style.display = 'none';
+            } else {
+                companyField.style.display = 'block';
+                taxIdField.style.display = 'block';
+            }
+        });
+
+        // Initialize form based on current selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const customerTypeSelect = document.querySelector('select[name="CustomerType"]');
+            if (customerTypeSelect.value) {
+                customerTypeSelect.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+}

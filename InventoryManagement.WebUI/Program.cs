@@ -77,6 +77,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<ICustomerInvoiceRepository, CustomerInvoiceRepository>();
+builder.Services.AddScoped<ICustomerPaymentRepository, CustomerPaymentRepository>();
 
 // Register Identity Service
 builder.Services.AddScoped<IIdentityService, IdentityService>();

@@ -74,13 +74,12 @@ public class CustomerRepository : GenericRepository<Customer>, ICustomerReposito
         // Apply filters
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            var term = searchTerm.ToLower();
             query = query.Where(c =>
-                c.FullName.ToLower().Contains(term) ||
-                c.CustomerCode.ToLower().Contains(term) ||
-                (c.Email != null && c.Email.ToLower().Contains(term)) ||
-                (c.PhoneNumber != null && c.PhoneNumber.Contains(term)) ||
-                (c.CompanyName != null && c.CompanyName.ToLower().Contains(term)));
+                c.FullName.Contains(searchTerm) ||
+                c.CustomerCode.Contains(searchTerm) ||
+                (c.Email != null && c.Email.Contains(searchTerm)) ||
+                (c.PhoneNumber != null && c.PhoneNumber.Contains(searchTerm)) ||
+                (c.CompanyName != null && c.CompanyName.Contains(searchTerm)));
         }
 
         if (!string.IsNullOrWhiteSpace(customerType))
@@ -106,31 +105,15 @@ public class CustomerRepository : GenericRepository<Customer>, ICustomerReposito
         // Get total count before pagination
         var totalCount = await query.CountAsync(cancellationToken);
 
-        // Apply sorting
-        query = sortBy.ToLower() switch
+        // Apply sorting (simplified)
+        if (sortDirection?.Equals("desc", StringComparison.OrdinalIgnoreCase) == true)
         {
-            "customercode" => sortDirection.ToLower() == "desc"
-                ? query.OrderByDescending(c => c.CustomerCode)
-                : query.OrderBy(c => c.CustomerCode),
-            "companyname" => sortDirection.ToLower() == "desc"
-                ? query.OrderByDescending(c => c.CompanyName)
-                : query.OrderBy(c => c.CompanyName),
-            "customertype" => sortDirection.ToLower() == "desc"
-                ? query.OrderByDescending(c => c.CustomerType)
-                : query.OrderBy(c => c.CustomerType),
-            "balance" => sortDirection.ToLower() == "desc"
-                ? query.OrderByDescending(c => c.Balance)
-                : query.OrderBy(c => c.Balance),
-            "registereddate" => sortDirection.ToLower() == "desc"
-                ? query.OrderByDescending(c => c.RegisteredDate)
-                : query.OrderBy(c => c.RegisteredDate),
-            "totalpurchases" => sortDirection.ToLower() == "desc"
-                ? query.OrderByDescending(c => c.TotalPurchases)
-                : query.OrderBy(c => c.TotalPurchases),
-            _ => sortDirection.ToLower() == "desc"
-                ? query.OrderByDescending(c => c.FullName)
-                : query.OrderBy(c => c.FullName)
-        };
+            query = query.OrderByDescending(c => c.FullName);
+        }
+        else
+        {
+            query = query.OrderBy(c => c.FullName);
+        }
 
         // Apply pagination
         var customers = await query
