@@ -24,6 +24,12 @@ public class AppDbContext : IdentityDbContext<IdentityUser>, IApplicationDbConte
     public DbSet<Product> Products { get; set; }
     public DbSet<Inventory> Inventories { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
+    
+    // Customer Management DbSets
+    public DbSet<Customer> Customers { get; set; }
+    public DbSet<CustomerInvoice> CustomerInvoices { get; set; }
+    public DbSet<CustomerInvoiceItem> CustomerInvoiceItems { get; set; }
+    public DbSet<CustomerPayment> CustomerPayments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,6 +43,12 @@ public class AppDbContext : IdentityDbContext<IdentityUser>, IApplicationDbConte
         ConfigureProducts(modelBuilder);
         ConfigureInventory(modelBuilder);
         ConfigureTransactions(modelBuilder);
+        
+        // Configure Customer Management entities
+        ConfigureCustomers(modelBuilder);
+        ConfigureCustomerInvoices(modelBuilder);
+        ConfigureCustomerInvoiceItems(modelBuilder);
+        ConfigureCustomerPayments(modelBuilder);
         
         // Configure indexes for performance
         ConfigureIndexes(modelBuilder);
@@ -609,5 +621,117 @@ public class AppDbContext : IdentityDbContext<IdentityUser>, IApplicationDbConte
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Configure Customers entity
+    /// </summary>
+    private static void ConfigureCustomers(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<Customer>();
+        
+        entity.HasKey(c => c.Id);
+        entity.HasIndex(c => c.CustomerCode).IsUnique();
+        entity.Property(c => c.CustomerCode).IsRequired().HasMaxLength(20);
+        entity.Property(c => c.FullName).IsRequired().HasMaxLength(100);
+        entity.Property(c => c.CompanyName).HasMaxLength(100);
+        entity.Property(c => c.Email).HasMaxLength(100);
+        entity.Property(c => c.PhoneNumber).HasMaxLength(20);
+        entity.Property(c => c.Address).HasMaxLength(500);
+        entity.Property(c => c.CustomerType).IsRequired().HasMaxLength(20);
+        entity.Property(c => c.Balance).HasColumnType("decimal(18,2)");
+        entity.Property(c => c.CreditLimit).HasColumnType("decimal(18,2)");
+        entity.Property(c => c.TaxId).HasMaxLength(50);
+        entity.Property(c => c.Notes).HasMaxLength(1000);
+        entity.Property(c => c.TotalPurchases).HasColumnType("decimal(18,2)");
+    }
+
+    /// <summary>
+    /// Configure CustomerInvoices entity
+    /// </summary>
+    private static void ConfigureCustomerInvoices(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<CustomerInvoice>();
+        
+        entity.HasKey(i => i.Id);
+        entity.HasIndex(i => i.InvoiceNumber).IsUnique();
+        entity.Property(i => i.InvoiceNumber).IsRequired().HasMaxLength(50);
+        entity.Property(i => i.SubTotal).HasColumnType("decimal(18,2)");
+        entity.Property(i => i.TaxAmount).HasColumnType("decimal(18,2)");
+        entity.Property(i => i.DiscountAmount).HasColumnType("decimal(18,2)");
+        entity.Property(i => i.TotalAmount).HasColumnType("decimal(18,2)");
+        entity.Property(i => i.PaidAmount).HasColumnType("decimal(18,2)");
+        entity.Property(i => i.Status).IsRequired().HasMaxLength(20);
+        entity.Property(i => i.PaymentTerms).HasMaxLength(100);
+        entity.Property(i => i.Notes).HasMaxLength(500);
+
+        // Foreign key relationships
+        entity.HasOne(i => i.Customer)
+              .WithMany(c => c.Invoices)
+              .HasForeignKey(i => i.CustomerId)
+              .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(i => i.CreatedByUser)
+              .WithMany()
+              .HasForeignKey(i => i.CreatedByUserId)
+              .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    /// <summary>
+    /// Configure CustomerInvoiceItems entity
+    /// </summary>
+    private static void ConfigureCustomerInvoiceItems(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<CustomerInvoiceItem>();
+        
+        entity.HasKey(i => i.Id);
+        entity.Property(i => i.UnitPrice).HasColumnType("decimal(18,2)");
+        entity.Property(i => i.DiscountPercentage).HasColumnType("decimal(5,2)");
+        entity.Property(i => i.TaxPercentage).HasColumnType("decimal(5,2)");
+        entity.Property(i => i.Description).HasMaxLength(200);
+
+        // Foreign key relationships
+        entity.HasOne(i => i.Invoice)
+              .WithMany(inv => inv.Items)
+              .HasForeignKey(i => i.InvoiceId)
+              .OnDelete(DeleteBehavior.Cascade);
+
+        entity.HasOne(i => i.Product)
+              .WithMany()
+              .HasForeignKey(i => i.ProductId)
+              .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    /// <summary>
+    /// Configure CustomerPaymentsentity
+    /// </summary>
+    private static void ConfigureCustomerPayments(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<CustomerPayment>();
+        
+        entity.HasKey(p => p.Id);
+        entity.HasIndex(p => p.PaymentNumber).IsUnique();
+        entity.Property(p => p.PaymentNumber).IsRequired().HasMaxLength(50);
+        entity.Property(p => p.Amount).HasColumnType("decimal(18,2)");
+        entity.Property(p => p.PaymentMethod).IsRequired().HasMaxLength(50);
+        entity.Property(p => p.PaymentType).IsRequired().HasMaxLength(20);
+        entity.Property(p => p.ReferenceNumber).HasMaxLength(100);
+        entity.Property(p => p.Notes).HasMaxLength(500);
+
+        // Foreign key relationships
+        entity.HasOne(p => p.Customer)
+              .WithMany(c => c.Payments)
+              .HasForeignKey(p => p.CustomerId)
+              .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(p => p.Invoice)
+              .WithMany(i => i.Payments)
+              .HasForeignKey(p => p.InvoiceId)
+              .OnDelete(DeleteBehavior.SetNull);
+
+        entity.HasOne(p => p.RecordedByUser)
+              .WithMany()
+              .HasForeignKey(p => p.RecordedByUserId)
+              .OnDelete(DeleteBehavior.Restrict);
     }
 }

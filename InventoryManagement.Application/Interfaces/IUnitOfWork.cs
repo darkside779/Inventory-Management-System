@@ -41,6 +41,21 @@ public interface IUnitOfWork : IDisposable
     ITransactionRepository Transactions { get; }
 
     /// <summary>
+    /// Customer repository
+    /// </summary>
+    ICustomerRepository Customers { get; }
+
+    /// <summary>
+    /// Customer Invoice repository
+    /// </summary>
+    ICustomerInvoiceRepository CustomerInvoices { get; }
+
+    /// <summary>
+    /// Customer Payment repository
+    /// </summary>
+    ICustomerPaymentRepository CustomerPayments { get; }
+
+    /// <summary>
     /// Save all changes to the database
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>

@@ -26,19 +26,19 @@
     <div class="row mb-3">
         <div class="col-12">
             <div class="d-flex flex-wrap gap-2">
-                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                @if (User.IsInRole("Administrator") || User.IsInRole("Manager"))
                 {
                     <a href="@Url.Action("CreateStockIn")" class="btn btn-success">
                         <i class="fas fa-plus-circle me-1"></i>Stock In
                     </a>
                 }
-                @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Employee"))
+                @if (User.IsInRole("Administrator") || User.IsInRole("Manager") || User.IsInRole("Staff"))
                 {
                     <a href="@Url.Action("CreateStockOut")" class="btn btn-warning">
                         <i class="fas fa-minus-circle me-1"></i>Stock Out
                     </a>
                 }
-                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                @if (User.IsInRole("Administrator") || User.IsInRole("Manager"))
                 {
                     <a href="@Url.Action("CreateAdjustment")" class="btn btn-info">
                         <i class="fas fa-adjust me-1"></i>Adjustment

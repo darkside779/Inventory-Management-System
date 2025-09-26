@@ -70,7 +70,7 @@ public class ReportsController : BaseController
     /// <param name="sortDirection">Sort direction</param>
     /// <returns>Inventory report view</returns>
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> Inventory(
         InventoryReportFilterViewModel? filter = null,
         string? type = null,
@@ -168,7 +168,7 @@ public class ReportsController : BaseController
     /// <param name="sortDirection">Sort direction</param>
     /// <returns>Transaction report view</returns>
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> Transactions(
         TransactionReportFilterViewModel? filter = null,
         int pageNumber = 1,
@@ -252,7 +252,7 @@ public class ReportsController : BaseController
     /// <param name="sortDirection">Sort direction</param>
     /// <returns>Product movement report view</returns>
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> ProductMovement(
         ProductMovementReportFilterViewModel? filter = null,
         int pageNumber = 1,
@@ -327,7 +327,7 @@ public class ReportsController : BaseController
     /// <param name="filter">Filter parameters</param>
     /// <returns>CSV file download</returns>
     [HttpPost]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> ExportInventory([FromForm] InventoryReportFilterViewModel filter)
     {
         try
@@ -377,7 +377,7 @@ public class ReportsController : BaseController
     /// <param name="filter">Filter parameters</param>
     /// <returns>CSV file download</returns>
     [HttpPost]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> ExportTransactions([FromForm] TransactionReportFilterViewModel filter)
     {
         try

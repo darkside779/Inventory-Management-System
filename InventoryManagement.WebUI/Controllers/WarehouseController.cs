@@ -132,7 +132,7 @@ public class WarehouseController : BaseController
     /// Display create warehouse form
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public IActionResult Create()
     {
         var viewModel = new CreateWarehouseViewModel();
@@ -144,7 +144,7 @@ public class WarehouseController : BaseController
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> Create(CreateWarehouseViewModel model)
     {
         try
@@ -190,7 +190,7 @@ public class WarehouseController : BaseController
     /// Display edit warehouse form
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> Edit(int id)
     {
         try
@@ -227,7 +227,7 @@ public class WarehouseController : BaseController
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> Edit(EditWarehouseViewModel model)
     {
         try
@@ -274,7 +274,7 @@ public class WarehouseController : BaseController
     /// Display delete warehouse confirmation
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Delete(int id)
     {
         try
@@ -323,7 +323,7 @@ public class WarehouseController : BaseController
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         try
@@ -402,7 +402,7 @@ public class WarehouseController : BaseController
     /// Toggle warehouse active status via AJAX
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> ToggleStatus(int id)
     {
         try

@@ -31,7 +31,7 @@
                         </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                            @if (User.IsInRole("Administrator") || User.IsInRole("Manager"))
                             {
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
@@ -45,11 +45,20 @@
                                             </a></li>
                                             <li><hr class="dropdown-divider"></li>
                                         }
+                                        <li><a class="dropdown-item" asp-controller="Warehouse" asp-action="Index">
+                                            <i class="fas fa-warehouse me-1"></i>Warehouses
+                                        </a></li>
                                         <li><a class="dropdown-item" asp-controller="Inventory" asp-action="Index">
                                             <i class="fas fa-boxes me-1"></i>Inventory
                                         </a></li>
                                         <li><a class="dropdown-item" asp-controller="Category" asp-action="Index">
                                             <i class="fas fa-tags me-1"></i>Categories
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Supplier" asp-action="Index">
+                                            <i class="fas fa-truck me-1"></i>Suppliers
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Customer" asp-action="Index">
+                                            <i class="fas fa-users me-1"></i>Customers
                                         </a></li>
                                         <li><a class="dropdown-item" asp-controller="Product" asp-action="Index">
                                             <i class="fas fa-cube me-1"></i>Products
@@ -105,8 +114,8 @@
                                     <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">
                                         <i class="fas fa-user me-2"></i>Profile
                                     </a></li>
-                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Settings">
-                                        <i class="fas fa-cog me-2"></i>Settings
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">
+                                        <i class="fas fa-cog me-2"></i>Change Password
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>

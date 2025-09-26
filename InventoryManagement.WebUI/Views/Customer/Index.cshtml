@@ -1,0 +1,322 @@
+@model InventoryManagement.WebUI.ViewModels.Customer.CustomerIndexViewModel
+@{
+    ViewData["Title"] = "Customer Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2 class="h3 mb-0">
+                <i class="fas fa-users text-primary me-2"></i>Customer Management
+            </h2>
+            <p class="text-muted mb-0">Manage customer information and accounts</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active">Customers</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex gap-2">
+                <a asp-action="Create" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i>Add New Customer
+                </a>
+                <button type="button" class="btn btn-outline-primary" onclick="location.reload();">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" asp-action="Index">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="SearchTerm" value="@Model.Filter.SearchTerm" 
+                               class="form-control" placeholder="Name, code, email, phone..." />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Customer Type</label>
+                        <select name="CustomerType" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="Individual" selected="@(Model.Filter.CustomerType == "Individual")">Individual</option>
+                            <option value="Business" selected="@(Model.Filter.CustomerType == "Business")">Business</option>
+                            <option value="Corporate" selected="@(Model.Filter.CustomerType == "Corporate")">Corporate</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                        <select name="IsActive" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="true" selected="@(Model.Filter.IsActive == true)">Active</option>
+                            <option value="false" selected="@(Model.Filter.IsActive == false)">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Registered From</label>
+                        <input type="date" name="RegisteredFrom" value="@Model.Filter.RegisteredFrom?.ToString("yyyy-MM-dd")" class="form-control" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Registered To</label>
+                        <input type="date" name="RegisteredTo" value="@Model.Filter.RegisteredTo?.ToString("yyyy-MM-dd")" class="form-control" />
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customers Table -->
+    <div class="card">
+        <div class="card-body">
+            @if (Model.Customers.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>
+                                    <a asp-action="Index" asp-route-sortBy="CustomerCode" 
+                                       asp-route-sortDirection="@(Model.Filter.SortBy == "CustomerCode" && Model.Filter.SortDirection == "asc" ? "desc" : "asc")"
+                                       class="text-decoration-none text-dark">
+                                        Customer Code
+                                        @if (Model.Filter.SortBy == "CustomerCode")
+                                        {
+                                            <i class="fas fa-sort-@(Model.Filter.SortDirection == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a asp-action="Index" asp-route-sortBy="FullName" 
+                                       asp-route-sortDirection="@(Model.Filter.SortBy == "FullName" && Model.Filter.SortDirection == "asc" ? "desc" : "asc")"
+                                       class="text-decoration-none text-dark">
+                                        Customer Name
+                                        @if (Model.Filter.SortBy == "FullName")
+                                        {
+                                            <i class="fas fa-sort-@(Model.Filter.SortDirection == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>Contact Info</th>
+                                <th>
+                                    <a asp-action="Index" asp-route-sortBy="CustomerType" 
+                                       asp-route-sortDirection="@(Model.Filter.SortBy == "CustomerType" && Model.Filter.SortDirection == "asc" ? "desc" : "asc")"
+                                       class="text-decoration-none text-dark">
+                                        Type
+                                        @if (Model.Filter.SortBy == "CustomerType")
+                                        {
+                                            <i class="fas fa-sort-@(Model.Filter.SortDirection == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a asp-action="Index" asp-route-sortBy="Balance" 
+                                       asp-route-sortDirection="@(Model.Filter.SortBy == "Balance" && Model.Filter.SortDirection == "asc" ? "desc" : "asc")"
+                                       class="text-decoration-none text-dark">
+                                        Balance
+                                        @if (Model.Filter.SortBy == "Balance")
+                                        {
+                                            <i class="fas fa-sort-@(Model.Filter.SortDirection == "asc" ? "up" : "down")"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var customer in Model.Customers)
+                            {
+                                <tr>
+                                    <td>
+                                        <code class="text-primary">@customer.CustomerCode</code>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>@customer.FullName</strong>
+                                            @if (!string.IsNullOrEmpty(customer.CompanyName))
+                                            {
+                                                <br />
+                                                <small class="text-muted">@customer.CompanyName</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(customer.Email))
+                                        {
+                                            <div><i class="fas fa-envelope text-muted me-1"></i>@customer.Email</div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(customer.PhoneNumber))
+                                        {
+                                            <div><i class="fas fa-phone text-muted me-1"></i>@customer.PhoneNumber</div>
+                                        }
+                                    </td>
+                                    <td>
+                                        @{
+                                            var typeBadgeClass = customer.CustomerType switch
+                                            {
+                                                "Individual" => "badge bg-info",
+                                                "Business" => "badge bg-warning text-dark",
+                                                "Corporate" => "badge bg-success",
+                                                _ => "badge bg-secondary"
+                                            };
+                                        }
+                                        <span class="@typeBadgeClass">@customer.CustomerType</span>
+                                    </td>
+                                    <td>
+                                        @if (customer.Balance > 0)
+                                        {
+                                            <span class="text-danger fw-bold">$@customer.Balance.ToString("N2")</span>
+                                            @if (customer.IsOverCreditLimit)
+                                            {
+                                                <br /><small class="badge bg-danger">Over Limit</small>
+                                            }
+                                        }
+                                        else if (customer.Balance < 0)
+                                        {
+                                            <span class="text-success fw-bold">$@customer.Balance.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">$0.00</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (customer.IsActive)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="Details" asp-route-id="@customer.Id" 
+                                               class="btn btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@customer.Id" 
+                                               class="btn btn-outline-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-info" 
+                                                    onclick="toggleCustomerStatus(@customer.Id)" title="Toggle Status">
+                                                <i class="fas fa-toggle-@(customer.IsActive ? "off" : "on")"></i>
+                                            </button>
+                                            @if (User.IsInRole("Administrator"))
+                                            {
+                                                <a asp-action="Delete" asp-route-id="@customer.Id" 
+                                                   class="btn btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Customer navigation">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.HasPreviousPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber - 1)">Previous</a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@i">@i</a>
+                                </li>
+                            }
+
+                            @if (Model.HasNextPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber + 1)">Next</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+
+                <!-- Summary Info -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Showing @((Model.PageNumber - 1) * Model.PageSize + 1) to 
+                            @Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount) of @Model.TotalCount customers
+                        </small>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No customers found</h5>
+                    <p class="text-muted">Try adjusting your search criteria or add a new customer.</p>
+                    <a asp-action="Create" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Add First Customer
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleCustomerStatus(customerId) {
+            if (confirm('Are you sure you want to toggle this customer\'s status?')) {
+                $.ajax({
+                    url: '@Url.Action("ToggleStatus")',
+                    type: 'POST',
+                    data: { id: customerId },
+                    success: function (result) {
+                        if (result.success) {
+                            location.reload();
+                        } else {
+                            alert('Error: ' + result.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while toggling customer status.');
+                    }
+                });
+            }
+        }
+    </script>
+}

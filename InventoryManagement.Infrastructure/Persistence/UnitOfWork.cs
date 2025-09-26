@@ -20,6 +20,9 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     private IProductRepository? _products;
     private IInventoryRepository? _inventory;
     private ITransactionRepository? _transactions;
+    private ICustomerRepository? _customers;
+    private ICustomerInvoiceRepository? _customerInvoices;
+    private ICustomerPaymentRepository? _customerPayments;
 
     public UnitOfWork(AppDbContext context)
     {
@@ -107,6 +110,42 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         {
             _transactions ??= new TransactionRepository(_context);
             return _transactions;
+        }
+    }
+
+    /// <summary>
+    /// Customer repository
+    /// </summary>
+    public ICustomerRepository Customers
+    {
+        get
+        {
+            _customers ??= new CustomerRepository(_context);
+            return _customers;
+        }
+    }
+
+    /// <summary>
+    /// Customer Invoice repository
+    /// </summary>
+    public ICustomerInvoiceRepository CustomerInvoices
+    {
+        get
+        {
+            _customerInvoices ??= new CustomerInvoiceRepository(_context);
+            return _customerInvoices;
+        }
+    }
+
+    /// <summary>
+    /// Customer Payment repository
+    /// </summary>
+    public ICustomerPaymentRepository CustomerPayments
+    {
+        get
+        {
+            _customerPayments ??= new CustomerPaymentRepository(_context);
+            return _customerPayments;
         }
     }
 

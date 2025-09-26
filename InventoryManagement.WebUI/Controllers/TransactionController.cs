@@ -135,7 +135,7 @@ public class TransactionController : BaseController
     /// </summary>
     /// <returns>Create stock in view</returns>
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> CreateStockIn()
     {
         try
@@ -165,7 +165,7 @@ public class TransactionController : BaseController
     /// <returns>Redirect to index or return view with errors</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> CreateStockIn(CreateStockInViewModel model)
     {
         try
@@ -182,7 +182,7 @@ public class TransactionController : BaseController
             {
                 ProductId = model.ProductId,
                 WarehouseId = model.WarehouseId,
-                UserId = int.Parse(GetCurrentUserId()),
+                UserId = GetCurrentUserIdAsInt(),
                 Quantity = model.Quantity,
                 UnitCost = model.UnitCost,
                 Reason = model.Reason,
@@ -220,7 +220,7 @@ public class TransactionController : BaseController
     /// </summary>
     /// <returns>Create stock out view</returns>
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager,Employee")]
+    [Authorize(Roles = "Administrator,Manager,Staff")]
     public async Task<IActionResult> CreateStockOut()
     {
         try
@@ -250,7 +250,7 @@ public class TransactionController : BaseController
     /// <returns>Redirect to index or return view with errors</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Manager,Employee")]
+    [Authorize(Roles = "Administrator,Manager,Staff")]
     public async Task<IActionResult> CreateStockOut(CreateStockOutViewModel model)
     {
         try
@@ -267,7 +267,7 @@ public class TransactionController : BaseController
             {
                 ProductId = model.ProductId,
                 WarehouseId = model.WarehouseId,
-                UserId = int.Parse(GetCurrentUserId()),
+                UserId = GetCurrentUserIdAsInt(),
                 Quantity = model.Quantity,
                 UnitCost = model.UnitCost,
                 Reason = model.Reason,
@@ -305,7 +305,7 @@ public class TransactionController : BaseController
     /// </summary>
     /// <returns>Create adjustment view</returns>
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> CreateAdjustment()
     {
         try
@@ -335,7 +335,7 @@ public class TransactionController : BaseController
     /// <returns>Redirect to index or return view with errors</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> CreateAdjustment(CreateAdjustmentViewModel model)
     {
         try
@@ -352,7 +352,7 @@ public class TransactionController : BaseController
             {
                 ProductId = model.ProductId,
                 WarehouseId = model.WarehouseId,
-                UserId = int.Parse(GetCurrentUserId()),
+                UserId = GetCurrentUserIdAsInt(),
                 QuantityAdjustment = model.QuantityAdjustment,
                 Reason = model.Reason,
                 ReferenceNumber = model.ReferenceNumber,

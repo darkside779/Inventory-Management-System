@@ -141,5 +141,17 @@ public class MappingProfile : Profile
         CreateMap<ProductDto, Product>();
         CreateMap<InventoryDto, Inventory>();
         CreateMap<TransactionDto, Transaction>();
+
+        // Customer mappings
+        CreateMap<Customer, CustomerDto>();
+        CreateMap<CustomerDto, Customer>();
+        
+        // Customer Invoice mappings
+        CreateMap<CustomerInvoice, CustomerInvoiceDto>();
+        CreateMap<CustomerInvoiceDto, CustomerInvoice>();
+        
+        // Customer Payment mappings
+        CreateMap<CustomerPayment, CustomerPaymentDto>();  
+        CreateMap<CustomerPaymentDto, CustomerPayment>();
     }
 }

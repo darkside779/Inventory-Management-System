@@ -112,7 +112,7 @@ public class SupplierController : BaseController
     /// Display create supplier form
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public IActionResult Create()
     {
         return View(new CreateSupplierViewModel());
@@ -123,7 +123,7 @@ public class SupplierController : BaseController
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> Create(CreateSupplierViewModel model)
     {
         if (!ModelState.IsValid)
@@ -183,7 +183,7 @@ public class SupplierController : BaseController
     /// Display edit supplier form
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> Edit(int id)
     {
         try
@@ -223,7 +223,7 @@ public class SupplierController : BaseController
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> Edit(EditSupplierViewModel model)
     {
         if (!ModelState.IsValid)
@@ -290,7 +290,7 @@ public class SupplierController : BaseController
     /// Display delete supplier confirmation
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Delete(int id)
     {
         try
@@ -338,7 +338,7 @@ public class SupplierController : BaseController
     /// </summary>
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         try
@@ -373,7 +373,7 @@ public class SupplierController : BaseController
     /// Toggle supplier status (AJAX)
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> ToggleStatus([FromBody] ToggleStatusRequest request)
     {
         try
