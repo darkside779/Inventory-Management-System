@@ -191,7 +191,7 @@ public class CreateInvoiceCommandHandler : IRequestHandler<CreateInvoiceCommand,
                     UnitPrice = itemDto.UnitPrice,
                     DiscountPercentage = itemDto.DiscountPercentage,
                     TaxPercentage = itemDto.TaxPercentage,
-                    Description = itemDto.Description ?? product.ProductName,
+                    Description = itemDto.Description ?? product.Name,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsActive = true

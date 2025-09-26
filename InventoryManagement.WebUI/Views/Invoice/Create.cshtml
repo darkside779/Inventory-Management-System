@@ -1,0 +1,349 @@
+@model InventoryManagement.WebUI.ViewModels.Invoice.CreateInvoiceViewModel
+@{
+    ViewData["Title"] = "Create Invoice";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2 class="h3 mb-0">
+                <i class="fas fa-file-invoice-dollar text-success me-2"></i>Create New Invoice
+            </h2>
+            <p class="text-muted mb-0">Generate a new customer invoice</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Invoices</a>
+                    </li>
+                    <li class="breadcrumb-item active">Create</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Invoice Form -->
+    <form asp-action="Create" method="post" id="invoiceForm">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        <div class="row">
+            <!-- Main Invoice Details -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Invoice Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="CustomerId" class="form-label">
+                                        Customer <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="CustomerId" asp-items="Model.Customers" class="form-select">
+                                        <option value="">Select a customer...</option>
+                                    </select>
+                                    <span asp-validation-for="CustomerId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label asp-for="InvoiceDate" class="form-label">
+                                        Invoice Date <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="InvoiceDate" type="date" class="form-control" />
+                                    <span asp-validation-for="InvoiceDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label asp-for="DueDate" class="form-label">
+                                        Due Date <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="DueDate" type="date" class="form-control" />
+                                    <span asp-validation-for="DueDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="PaymentTerms" class="form-label">Payment Terms</label>
+                                    <input asp-for="PaymentTerms" class="form-control" placeholder="Net 30 days" />
+                                    <span asp-validation-for="PaymentTerms" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Notes" class="form-label">Notes</label>
+                                    <textarea asp-for="Notes" class="form-control" rows="2" placeholder="Additional notes..."></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Items -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-list me-2"></i>Invoice Items
+                            </h5>
+                            <button type="button" class="btn btn-light btn-sm" onclick="addInvoiceItem()">
+                                <i class="fas fa-plus me-1"></i>Add Item
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="invoiceItems">
+                            <!-- Invoice items will be dynamically added here -->
+                            <div class="row align-items-center mb-3 invoice-item" data-item-index="0">
+                                <div class="col-md-3">
+                                    <label class="form-label">Product</label>
+                                    <select name="Items[0].ProductId" class="form-select product-select" onchange="updateProductInfo(this, 0)">
+                                        <option value="">Select product...</option>
+                                        <!-- Products will be populated dynamically -->
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Quantity</label>
+                                    <input name="Items[0].Quantity" type="number" class="form-control quantity-input" 
+                                           value="1" min="1" onchange="calculateLineTotal(0)" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Unit Price</label>
+                                    <input name="Items[0].UnitPrice" type="number" class="form-control price-input" 
+                                           step="0.01" min="0" onchange="calculateLineTotal(0)" />
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label">Disc %</label>
+                                    <input name="Items[0].DiscountPercentage" type="number" class="form-control discount-input" 
+                                           step="0.01" min="0" max="100" value="0" onchange="calculateLineTotal(0)" />
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label">Tax %</label>
+                                    <input name="Items[0].TaxPercentage" type="number" class="form-control tax-input" 
+                                           step="0.01" min="0" max="100" value="0" onchange="calculateLineTotal(0)" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Total</label>
+                                    <input type="text" class="form-control line-total" readonly />
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="button" class="btn btn-outline-danger btn-sm d-block" 
+                                            onclick="removeInvoiceItem(0)" style="display: none;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-3" id="noItemsMessage" style="display: none;">
+                            <p class="text-muted">No items added yet. Click "Add Item" to get started.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Summary -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calculator me-2"></i>Invoice Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td>Subtotal:</td>
+                                <td class="text-end fw-bold" id="subtotalAmount">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Total Discount:</td>
+                                <td class="text-end text-success" id="totalDiscount">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Total Tax:</td>
+                                <td class="text-end" id="totalTax">$0.00</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td><strong>Total Amount:</strong></td>
+                                <td class="text-end fw-bold h5 text-primary" id="totalAmount">$0.00</td>
+                            </tr>
+                        </table>
+
+                        <hr />
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i>Create Invoice
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a asp-controller="Customer" asp-action="Create" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-user-plus me-1"></i>New Customer
+                            </a>
+                            <a asp-controller="Product" asp-action="Create" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-cube me-1"></i>New Product
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        let itemIndex = 1;
+
+        function addInvoiceItem() {
+            const container = document.getElementById('invoiceItems');
+            const newItem = `
+                <div class="row align-items-center mb-3 invoice-item" data-item-index="${itemIndex}">
+                    <div class="col-md-3">
+                        <select name="Items[${itemIndex}].ProductId" class="form-select product-select" onchange="updateProductInfo(this, ${itemIndex})">
+                            <option value="">Select product...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input name="Items[${itemIndex}].Quantity" type="number" class="form-control quantity-input" 
+                               value="1" min="1" onchange="calculateLineTotal(${itemIndex})" />
+                    </div>
+                    <div class="col-md-2">
+                        <input name="Items[${itemIndex}].UnitPrice" type="number" class="form-control price-input" 
+                               step="0.01" min="0" onchange="calculateLineTotal(${itemIndex})" />
+                    </div>
+                    <div class="col-md-1">
+                        <input name="Items[${itemIndex}].DiscountPercentage" type="number" class="form-control discount-input" 
+                               step="0.01" min="0" max="100" value="0" onchange="calculateLineTotal(${itemIndex})" />
+                    </div>
+                    <div class="col-md-1">
+                        <input name="Items[${itemIndex}].TaxPercentage" type="number" class="form-control tax-input" 
+                               step="0.01" min="0" max="100" value="0" onchange="calculateLineTotal(${itemIndex})" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control line-total" readonly />
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger btn-sm d-block" 
+                                onclick="removeInvoiceItem(${itemIndex})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>`;
+            
+            container.insertAdjacentHTML('beforeend', newItem);
+            itemIndex++;
+            updateRemoveButtons();
+        }
+
+        function removeInvoiceItem(index) {
+            const item = document.querySelector(`[data-item-index="${index}"]`);
+            if (item) {
+                item.remove();
+                calculateTotals();
+                updateRemoveButtons();
+            }
+        }
+
+        function updateRemoveButtons() {
+            const items = document.querySelectorAll('.invoice-item');
+            items.forEach((item, idx) => {
+                const removeBtn = item.querySelector('button[onclick*="removeInvoiceItem"]');
+                if (removeBtn) {
+                    removeBtn.style.display = items.length > 1 ? 'block' : 'none';
+                }
+            });
+        }
+
+        function calculateLineTotal(index) {
+            const item = document.querySelector(`[data-item-index="${index}"]`);
+            if (!item) return;
+
+            const quantity = parseFloat(item.querySelector('.quantity-input').value) || 0;
+            const unitPrice = parseFloat(item.querySelector('.price-input').value) || 0;
+            const discountPercent = parseFloat(item.querySelector('.discount-input').value) || 0;
+            const taxPercent = parseFloat(item.querySelector('.tax-input').value) || 0;
+
+            const lineTotal = quantity * unitPrice;
+            const discountAmount = lineTotal * (discountPercent / 100);
+            const taxableAmount = lineTotal - discountAmount;
+            const taxAmount = taxableAmount * (taxPercent / 100);
+            const finalTotal = lineTotal - discountAmount + taxAmount;
+
+            item.querySelector('.line-total').value = '$' + finalTotal.toFixed(2);
+            
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let subtotal = 0;
+            let totalDiscount = 0;
+            let totalTax = 0;
+
+            document.querySelectorAll('.invoice-item').forEach(item => {
+                const quantity = parseFloat(item.querySelector('.quantity-input').value) || 0;
+                const unitPrice = parseFloat(item.querySelector('.price-input').value) || 0;
+                const discountPercent = parseFloat(item.querySelector('.discount-input').value) || 0;
+                const taxPercent = parseFloat(item.querySelector('.tax-input').value) || 0;
+
+                const lineTotal = quantity * unitPrice;
+                const discountAmount = lineTotal * (discountPercent / 100);
+                const taxAmount = (lineTotal - discountAmount) * (taxPercent / 100);
+
+                subtotal += lineTotal;
+                totalDiscount += discountAmount;
+                totalTax += taxAmount;
+            });
+
+            const finalTotal = subtotal - totalDiscount + totalTax;
+
+            document.getElementById('subtotalAmount').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('totalDiscount').textContent = '$' + totalDiscount.toFixed(2);
+            document.getElementById('totalTax').textContent = '$' + totalTax.toFixed(2);
+            document.getElementById('totalAmount').textContent = '$' + finalTotal.toFixed(2);
+        }
+
+        function updateProductInfo(selectElement, index) {
+            // This would typically fetch product info via AJAX
+            // For now, just trigger calculation
+            calculateLineTotal(index);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRemoveButtons();
+            calculateTotals();
+        });
+    </script>
+}
