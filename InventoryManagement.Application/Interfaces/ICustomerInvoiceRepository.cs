@@ -24,6 +24,29 @@ public interface ICustomerInvoiceRepository : IGenericRepository<CustomerInvoice
     Task<IEnumerable<CustomerInvoice>> GetByCustomerIdAsync(int customerId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get customer's total invoice amount
+    /// </summary>
+    Task<decimal> GetCustomerTotalInvoicesAsync(int customerId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Search invoices with filtering, sorting and pagination
+    /// </summary>
+    Task<(IEnumerable<CustomerInvoice> Invoices, int TotalCount)> SearchInvoicesAsync(
+        string? searchTerm = null,
+        int? customerId = null,
+        string? status = null,
+        DateTime? invoiceDateFrom = null,
+        DateTime? invoiceDateTo = null,
+        DateTime? dueDateFrom = null,
+        DateTime? dueDateTo = null,
+        bool? isOverdue = null,
+        int page = 1,
+        int pageSize = 10,
+        string sortBy = "InvoiceDate",
+        string sortDirection = "desc",
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Get overdue invoices
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>

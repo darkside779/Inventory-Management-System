@@ -50,7 +50,6 @@ public class CustomerInvoiceRepository : GenericRepository<CustomerInvoice>, ICu
             .Include(i => i.Customer)
             .Where(i => i.DueDate < today && i.PaidAmount < i.TotalAmount && i.Status != "Cancelled")
             .OrderBy(i => i.DueDate)
-            .ToListAsync(cancellationToken);
     }
 
     /// <summary>

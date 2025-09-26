@@ -1,0 +1,243 @@
+@model InventoryManagement.WebUI.ViewModels.Invoice.InvoiceIndexViewModel
+@{
+    ViewData["Title"] = "Invoice Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2 class="h3 mb-0">
+                <i class="fas fa-file-invoice text-primary me-2"></i>Invoice Management
+            </h2>
+            <p class="text-muted mb-0">Manage customer invoices and billing</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active">Invoices</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex gap-2">
+                <a asp-action="Create" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i>Create Invoice
+                </a>
+                <button type="button" class="btn btn-outline-primary" onclick="location.reload();">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" asp-action="Index">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="SearchTerm" value="@Model.SearchTerm" 
+                               class="form-control" placeholder="Invoice #, customer name..." />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                        <select name="Status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="Draft" selected="@(Model.Status == "Draft")">Draft</option>
+                            <option value="Sent" selected="@(Model.Status == "Sent")">Sent</option>
+                            <option value="Paid" selected="@(Model.Status == "Paid")">Paid</option>
+                            <option value="Overdue" selected="@(Model.Status == "Overdue")">Overdue</option>
+                            <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Invoice From</label>
+                        <input type="date" name="InvoiceDateFrom" value="@Model.InvoiceDateFrom?.ToString("yyyy-MM-dd")" class="form-control" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Invoice To</label>
+                        <input type="date" name="InvoiceDateTo" value="@Model.InvoiceDateTo?.ToString("yyyy-MM-dd")" class="form-control" />
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-check mt-4">
+                            <input type="checkbox" name="IsOverdue" value="true" class="form-check-input" 
+                                   checked="@(Model.IsOverdue == true)" />
+                            <label class="form-check-label">Only Overdue</label>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Invoices Table -->
+    <div class="card">
+        <div class="card-body">
+            @if (Model.Invoices.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Customer</th>
+                                <th>Invoice Date</th>
+                                <th>Due Date</th>
+                                <th>Amount</th>
+                                <th>Balance</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var invoice in Model.Invoices)
+                            {
+                                <tr>
+                                    <td>
+                                        <code class="text-primary">@invoice.InvoiceNumber</code>
+                                    </td>
+                                    <td>
+                                        <strong>@invoice.CustomerName</strong>
+                                    </td>
+                                    <td>
+                                        @invoice.InvoiceDate.ToString("MMM dd, yyyy")
+                                    </td>
+                                    <td>
+                                        @invoice.DueDate.ToString("MMM dd, yyyy")
+                                        @if (invoice.IsOverdue)
+                                        {
+                                            <br /><small class="badge bg-danger">Overdue</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>$@invoice.TotalAmount.ToString("N2")</strong>
+                                    </td>
+                                    <td>
+                                        @if (invoice.Balance > 0)
+                                        {
+                                            <span class="text-danger fw-bold">$@invoice.Balance.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success">Paid</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @{
+                                            var statusBadgeClass = invoice.Status switch
+                                            {
+                                                "Draft" => "badge bg-secondary",
+                                                "Sent" => "badge bg-info",
+                                                "Paid" => "badge bg-success",
+                                                "Overdue" => "badge bg-danger",
+                                                "Cancelled" => "badge bg-dark",
+                                                _ => "badge bg-secondary"
+                                            };
+                                        }
+                                        <span class="@statusBadgeClass">@invoice.Status</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="Details" asp-route-id="@invoice.Id" 
+                                               class="btn btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if (invoice.Status != "Paid" && invoice.Status != "Cancelled")
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@invoice.Id" 
+                                                   class="btn btn-outline-warning" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            }
+                                            <button type="button" class="btn btn-outline-info" 
+                                                    title="Print Invoice">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                            @if (invoice.Status != "Paid" && invoice.Status != "Cancelled")
+                                            {
+                                                <a asp-controller="Payment" asp-action="Create" asp-route-invoiceId="@invoice.Id" 
+                                                   class="btn btn-outline-success" title="Record Payment">
+                                                    <i class="fas fa-dollar-sign"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Invoice navigation">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.HasPreviousPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.Page - 1)">Previous</a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, Model.Page - 2); i <= Math.Min(Model.TotalPages, Model.Page + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.Page ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@i">@i</a>
+                                </li>
+                            }
+
+                            @if (Model.HasNextPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.Page + 1)">Next</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+
+                <!-- Summary Info -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Showing @((Model.Page - 1) * Model.PageSize + 1) to 
+                            @Math.Min(Model.Page * Model.PageSize, Model.TotalCount) of @Model.TotalCount invoices
+                        </small>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No invoices found</h5>
+                    <p class="text-muted">Try adjusting your search criteria or create a new invoice.</p>
+                    <a asp-action="Create" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Create First Invoice
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
