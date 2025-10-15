@@ -61,6 +61,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile), typeof(InventoryManagemen
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(MappingProfile).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(InventoryManagement.Application.Features.Payments.Commands.CreatePayment.CreatePaymentCommand).Assembly);
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingPipelineBehavior<,>));
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
 });

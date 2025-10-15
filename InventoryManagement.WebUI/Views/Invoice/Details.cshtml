@@ -1,0 +1,261 @@
+@model InventoryManagement.WebUI.ViewModels.Invoice.InvoiceDetailsViewModel
+@{
+    ViewData["Title"] = $"Invoice Details - {Model.InvoiceNumber}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2 class="h3 mb-0">
+                <i class="fas fa-file-invoice text-primary me-2"></i>Invoice Details
+            </h2>
+            <p class="text-muted mb-0">@Model.InvoiceNumber</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Invoices</a>
+                    </li>
+                    <li class="breadcrumb-item active">Details</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex gap-2">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to List
+                </a>
+                @if (Model.Status != "Paid" && Model.Status != "Cancelled")
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                        <i class="fas fa-edit me-1"></i>Edit Invoice
+                    </a>
+                }
+                <a asp-action="Print" asp-route-id="@Model.Id" class="btn btn-info">
+                    <i class="fas fa-print me-1"></i>Print
+                </a>
+                @if (Model.Status != "Paid" && Model.Status != "Cancelled")
+                {
+                    <a asp-controller="Payment" asp-action="Create" asp-route-invoiceId="@Model.Id" class="btn btn-success">
+                        <i class="fas fa-dollar-sign me-1"></i>Record Payment
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Invoice Information -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Invoice Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Customer Information</h6>
+                            <p class="mb-1"><strong>@Model.CustomerName</strong></p>
+                            @if (!string.IsNullOrEmpty(Model.CompanyName))
+                            {
+                                <p class="mb-1 text-muted">@Model.CompanyName</p>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.CustomerEmail))
+                            {
+                                <p class="mb-1"><i class="fas fa-envelope me-1"></i>@Model.CustomerEmail</p>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.CustomerPhone))
+                            {
+                                <p class="mb-1"><i class="fas fa-phone me-1"></i>@Model.CustomerPhone</p>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Invoice Details</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <p class="mb-1"><strong>Invoice Date:</strong></p>
+                                    <p class="mb-1"><strong>Due Date:</strong></p>
+                                    <p class="mb-1"><strong>Status:</strong></p>
+                                    @if (!string.IsNullOrEmpty(Model.PaymentTerms))
+                                    {
+                                        <p class="mb-1"><strong>Payment Terms:</strong></p>
+                                    }
+                                </div>
+                                <div class="col-6">
+                                    <p class="mb-1">@Model.InvoiceDate.ToString("MMM dd, yyyy")</p>
+                                    <p class="mb-1">@Model.DueDate.ToString("MMM dd, yyyy")
+                                        @if (Model.IsOverdue)
+                                        {
+                                            <span class="badge bg-danger ms-1">Overdue</span>
+                                        }
+                                    </p>
+                                    <p class="mb-1">
+                                        @{
+                                            var statusBadgeClass = Model.Status switch
+                                            {
+                                                "Draft" => "badge bg-secondary",
+                                                "Sent" => "badge bg-info",
+                                                "Paid" => "badge bg-success",
+                                                "Overdue" => "badge bg-danger",
+                                                "Cancelled" => "badge bg-dark",
+                                                _ => "badge bg-secondary"
+                                            };
+                                        }
+                                        <span class="@statusBadgeClass">@Model.Status</span>
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(Model.PaymentTerms))
+                                    {
+                                        <p class="mb-1">@Model.PaymentTerms</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <hr />
+                        <h6 class="text-muted">Notes</h6>
+                        <p class="mb-0">@Model.Notes</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Invoice Items -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>Invoice Items
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Items.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-end">Unit Price</th>
+                                        <th class="text-center">Disc %</th>
+                                        <th class="text-center">Tax %</th>
+                                        <th class="text-end">Line Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@item.ProductName</strong>
+                                                @if (!string.IsNullOrEmpty(item.ProductSku))
+                                                {
+                                                    <br /><small class="text-muted">SKU: @item.ProductSku</small>
+                                                }
+                                                @if (!string.IsNullOrEmpty(item.Description))
+                                                {
+                                                    <br /><small class="text-muted">@item.Description</small>
+                                                }
+                                            </td>
+                                            <td class="text-center">@item.Quantity</td>
+                                            <td class="text-end">$@item.UnitPrice.ToString("N2")</td>
+                                            <td class="text-center">@item.DiscountPercentage.ToString("N1")%</td>
+                                            <td class="text-center">@item.TaxPercentage.ToString("N1")%</td>
+                                            <td class="text-end fw-bold">$@item.LineTotal.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No items in this invoice</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calculator me-2"></i>Invoice Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td>Subtotal:</td>
+                            <td class="text-end fw-bold">$@Model.SubTotal.ToString("N2")</td>
+                        </tr>
+                        @if (Model.DiscountAmount > 0)
+                        {
+                            <tr>
+                                <td>Discount:</td>
+                                <td class="text-end text-success">-$@Model.DiscountAmount.ToString("N2")</td>
+                            </tr>
+                        }
+                        @if (Model.TaxAmount > 0)
+                        {
+                            <tr>
+                                <td>Tax:</td>
+                                <td class="text-end">$@Model.TaxAmount.ToString("N2")</td>
+                            </tr>
+                        }
+                        <tr class="border-top">
+                            <td><strong>Total Amount:</strong></td>
+                            <td class="text-end fw-bold h5 text-primary">$@Model.TotalAmount.ToString("N2")</td>
+                        </tr>
+                        @if (Model.PaidAmount > 0)
+                        {
+                            <tr>
+                                <td>Paid Amount:</td>
+                                <td class="text-end text-success">$@Model.PaidAmount.ToString("N2")</td>
+                            </tr>
+                        }
+                        @if (Model.Balance > 0)
+                        {
+                            <tr class="border-top">
+                                <td><strong>Balance Due:</strong></td>
+                                <td class="text-end fw-bold h6 text-danger">$@Model.Balance.ToString("N2")</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Additional Information</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</p>
+                    @if (!string.IsNullOrEmpty(Model.CreatedByUser))
+                    {
+                        <p class="mb-0"><strong>Created By:</strong> @Model.CreatedByUser</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

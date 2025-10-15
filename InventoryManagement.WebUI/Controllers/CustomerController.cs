@@ -366,6 +366,59 @@ public class CustomerController : BaseController
     }
 
     /// <summary>
+    /// Search customers for autocomplete (AJAX endpoint)
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> SearchCustomers(string term, int limit = 10)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
+            {
+                return Json(new { customers = new object[0] });
+            }
+
+            var query = new GetCustomersQuery
+            {
+                SearchTerm = term,
+                IsActive = true,
+                Page = 1,
+                PageSize = limit,
+                SortBy = "FullName",
+                SortDirection = "asc"
+            };
+
+            var response = await _mediator.Send(query);
+
+            if (response.IsSuccess && response.Data != null)
+            {
+                var customers = response.Data.Select(c => new
+                {
+                    id = c.Id,
+                    fullName = c.FullName,
+                    email = c.Email,
+                    phone = c.PhoneNumber,
+                    company = c.CompanyName,
+                    customerCode = c.CustomerCode,
+                    displayText = !string.IsNullOrEmpty(c.CompanyName) 
+                        ? $"{c.FullName} ({c.CompanyName})" 
+                        : c.FullName,
+                    secondaryText = c.Email
+                }).ToList();
+
+                return Json(new { customers });
+            }
+
+            return Json(new { customers = new object[0] });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching customers with term: {SearchTerm}", term);
+            return Json(new { customers = new object[0], error = "Search failed" });
+        }
+    }
+
+    /// <summary>
     /// Populate dropdown lists for customer forms
     /// </summary>
     private void PopulateCustomerDropdowns(dynamic viewModel)

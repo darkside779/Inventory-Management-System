@@ -204,6 +204,76 @@ ELSE
 GO
 
 -- =====================================================
+-- 8. Customers Seed Data
+-- =====================================================
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Customers])
+BEGIN
+    INSERT INTO [dbo].[Customers] ([CustomerCode], [FullName], [CompanyName], [Email], [PhoneNumber], [Address], [CustomerType], [Balance], [CreditLimit], [PaymentTermsDays], [TaxId], [Notes], [IsActive], [RegisteredDate], [LastPurchaseDate], [TotalPurchases], [CreatedAt], [UpdatedAt])
+    VALUES
+        ('CUST-001', 'Alice Johnson', 'Johnson Trading', 'alice.johnson@email.com', '+1-555-1010', '101 Main St, City', 'Retail', 0.00, 5000.00, 30, 'TAX12345', 'First customer', 1, GETUTCDATE(), NULL, 0.00, GETUTCDATE(), GETUTCDATE()),
+        ('CUST-002', 'Bob Smith', NULL, 'bob.smith@email.com', '+1-555-2020', '202 Second St, City', 'Wholesale', 0.00, 10000.00, 45, NULL, NULL, 1, GETUTCDATE(), NULL, 0.00, GETUTCDATE(), GETUTCDATE());
+    PRINT 'Customers seed data inserted.';
+END
+ELSE
+    PRINT 'Customers already contain data.';
+GO
+
+-- =====================================================
+-- 9. CustomerInvoices Seed Data
+-- =====================================================
+IF NOT EXISTS (SELECT 1 FROM [dbo].[CustomerInvoices])
+BEGIN
+    DECLARE @CustomerId1 INT = (SELECT TOP 1 Id FROM Customers WHERE CustomerCode = 'CUST-001');
+    DECLARE @CustomerId2 INT = (SELECT TOP 1 Id FROM Customers WHERE CustomerCode = 'CUST-002');
+    DECLARE @AdminUserId INT = (SELECT TOP 1 Id FROM Users WHERE Username = 'admin');
+    INSERT INTO [dbo].[CustomerInvoices] ([InvoiceNumber], [CustomerId], [InvoiceDate], [DueDate], [SubTotal], [TaxAmount], [DiscountAmount], [TotalAmount], [PaidAmount], [Status], [PaymentTerms], [Notes], [CreatedByUserId], [CreatedAt], [UpdatedAt], [IsActive])
+    VALUES
+        ('INV-1001', @CustomerId1, DATEADD(DAY, -10, GETUTCDATE()), DATEADD(DAY, 20, GETUTCDATE()), 100.00, 10.00, 5.00, 105.00, 50.00, 'Partial', 'Net 30', 'First invoice', @AdminUserId, GETUTCDATE(), GETUTCDATE(), 1),
+        ('INV-1002', @CustomerId2, DATEADD(DAY, -5, GETUTCDATE()), DATEADD(DAY, 25, GETUTCDATE()), 200.00, 20.00, 0.00, 220.00, 0.00, 'Unpaid', 'Net 45', NULL, @AdminUserId, GETUTCDATE(), GETUTCDATE(), 1);
+    PRINT 'CustomerInvoices seed data inserted.';
+END
+ELSE
+    PRINT 'CustomerInvoices already contain data.';
+GO
+
+-- =====================================================
+-- 10. CustomerInvoiceItems Seed Data
+-- =====================================================
+IF NOT EXISTS (SELECT 1 FROM [dbo].[CustomerInvoiceItems])
+BEGIN
+    DECLARE @InvoiceId1 INT = (SELECT TOP 1 Id FROM CustomerInvoices WHERE InvoiceNumber = 'INV-1001');
+    DECLARE @InvoiceId2 INT = (SELECT TOP 1 Id FROM CustomerInvoices WHERE InvoiceNumber = 'INV-1002');
+    DECLARE @ProductId1 INT = (SELECT TOP 1 Id FROM Products WHERE SKU = 'ELEC-WM-001');
+    DECLARE @ProductId2 INT = (SELECT TOP 1 Id FROM Products WHERE SKU = 'ELEC-KB-001');
+    INSERT INTO [dbo].[CustomerInvoiceItems] ([InvoiceId], [ProductId], [Quantity], [UnitPrice], [DiscountPercentage], [TaxPercentage], [Description], [CreatedAt], [UpdatedAt], [IsActive])
+    VALUES
+        (@InvoiceId1, @ProductId1, 2, 29.99, 0.00, 10.00, 'Wireless Mouse', GETUTCDATE(), GETUTCDATE(), 1),
+        (@InvoiceId1, @ProductId2, 1, 59.99, 5.00, 10.00, 'Bluetooth Keyboard', GETUTCDATE(), GETUTCDATE(), 1),
+        (@InvoiceId2, @ProductId2, 3, 59.99, 0.00, 10.00, 'Bluetooth Keyboard', GETUTCDATE(), GETUTCDATE(), 1);
+    PRINT 'CustomerInvoiceItems seed data inserted.';
+END
+ELSE
+    PRINT 'CustomerInvoiceItems already contain data.';
+GO
+
+-- =====================================================
+-- 11. CustomerPayments Seed Data
+-- =====================================================
+IF NOT EXISTS (SELECT 1 FROM [dbo].[CustomerPayments])
+BEGIN
+    DECLARE @PaymentCustomerId1 INT = (SELECT TOP 1 Id FROM Customers WHERE CustomerCode = 'CUST-001');
+    DECLARE @PaymentInvoiceId1 INT = (SELECT TOP 1 Id FROM CustomerInvoices WHERE InvoiceNumber = 'INV-1001');
+    DECLARE @AdminUserId INT = (SELECT TOP 1 Id FROM Users WHERE Username = 'admin');
+    INSERT INTO [dbo].[CustomerPayments] ([PaymentNumber], [CustomerId], [InvoiceId], [PaymentDate], [Amount], [PaymentMethod], [PaymentType], [ReferenceNumber], [Notes], [RecordedByUserId], [CreatedAt], [UpdatedAt], [IsActive])
+    VALUES
+        ('PAY-0001', @PaymentCustomerId1, @PaymentInvoiceId1, DATEADD(DAY, -5, GETUTCDATE()), 50.00, 'Credit Card', 'Payment', 'REF-001', 'Partial payment for invoice INV-1001', @AdminUserId, GETUTCDATE(), GETUTCDATE(), 1);
+    PRINT 'CustomerPayments seed data inserted.';
+END
+ELSE
+    PRINT 'CustomerPayments already contain data.';
+GO
+
+-- =====================================================
 -- Update Statistics After Data Insert
 -- =====================================================
 UPDATE STATISTICS [dbo].[Categories];

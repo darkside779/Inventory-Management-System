@@ -169,10 +169,10 @@
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                             }
-                                            <button type="button" class="btn btn-outline-info" 
-                                                    title="Print Invoice">
+                                            <a asp-action="Print" asp-route-id="@invoice.Id" 
+                                               class="btn btn-outline-info" title="Print Invoice">
                                                 <i class="fas fa-print"></i>
-                                            </button>
+                                            </a>
                                             @if (invoice.Status != "Paid" && invoice.Status != "Cancelled")
                                             {
                                                 <a asp-controller="Payment" asp-action="Create" asp-route-invoiceId="@invoice.Id" 

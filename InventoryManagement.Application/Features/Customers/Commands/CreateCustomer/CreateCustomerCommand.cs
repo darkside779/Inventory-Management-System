@@ -3,6 +3,7 @@ using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace InventoryManagement.Application.Features.Customers.Commands;
@@ -124,8 +125,14 @@ public class CreateCustomerCommandHandler : IRequestHandler<CreateCustomerComman
                 };
             }
 
-            // Generate customer code (simplified)
-            var customerCode = Customer.GenerateCustomerCode(1);
+            // Generate unique customer code
+            var customers = await _unitOfWork.Customers.GetAsync(
+                orderBy: q => q.OrderByDescending(c => c.Id),
+                cancellationToken: cancellationToken);
+            
+            var lastCustomer = customers.FirstOrDefault();
+            var nextCustomerNumber = (lastCustomer?.Id ?? 0) + 1;
+            var customerCode = Customer.GenerateCustomerCode(nextCustomerNumber);
 
             // Create customer entity
             var customer = new Customer

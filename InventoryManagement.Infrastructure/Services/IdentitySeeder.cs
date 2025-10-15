@@ -42,39 +42,45 @@ public static class IdentitySeeder
                 }
             }
 
-            // Create default admin user if it doesn't exist
-            const string adminEmail = "admin@inventorymanagement.com";
-            const string adminPassword = "Admin123!";
-
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
-            if (adminUser == null)
+            // Seed users and roles
+            var usersToSeed = new[]
             {
-                adminUser = new IdentityUser
-                {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    EmailConfirmed = true
-                };
+                new { Email = "admin@inventoryms.com", Password = "Admin@123", Role = "Administrator" },
+                new { Email = "manager1@inventoryms.com", Password = "Admin@123", Role = "Manager" },
+                new { Email = "manager2@inventoryms.com", Password = "Admin@123", Role = "Manager" },
+                new { Email = "staff1@inventoryms.com", Password = "Admin@123", Role = "Staff" },
+                new { Email = "staff2@inventoryms.com", Password = "Admin@123", Role = "Staff" }
+            };
 
-                var result = await userManager.CreateAsync(adminUser, adminPassword);
-                if (result.Succeeded)
+            foreach (var userSeed in usersToSeed)
+            {
+                var user = await userManager.FindByEmailAsync(userSeed.Email);
+                if (user == null)
                 {
-                    // Add admin to Administrator role
-                    await userManager.AddToRoleAsync(adminUser, "Administrator");
-                    logger.LogInformation("Created default admin user: {Email}", adminEmail);
+                    user = new IdentityUser
+                    {
+                        UserName = userSeed.Email,
+                        Email = userSeed.Email,
+                        EmailConfirmed = true
+                    };
+                    var result = await userManager.CreateAsync(user, userSeed.Password);
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(user, userSeed.Role);
+                        logger.LogInformation($"Created user: {userSeed.Email} with role: {userSeed.Role}");
+                    }
+                    else
+                    {
+                        logger.LogError($"Failed to create user {userSeed.Email}: {{Errors}}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                    }
                 }
                 else
                 {
-                    logger.LogError("Failed to create admin user: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
-                }
-            }
-            else
-            {
-                // Ensure existing admin user has Administrator role
-                if (!await userManager.IsInRoleAsync(adminUser, "Administrator"))
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Administrator");
-                    logger.LogInformation("Added Administrator role to existing user: {Email}", adminEmail);
+                    if (!await userManager.IsInRoleAsync(user, userSeed.Role))
+                    {
+                        await userManager.AddToRoleAsync(user, userSeed.Role);
+                        logger.LogInformation($"Added role {userSeed.Role} to existing user: {userSeed.Email}");
+                    }
                 }
             }
         }

@@ -297,6 +297,3 @@ The database includes seed data for:
 - **Caching**: Application-level caching for frequently accessed data
 
 ---
-
-**Generated with [Memex](https://memex.tech)**
-**Co-Authored-By: Memex <noreply@memex.tech>**

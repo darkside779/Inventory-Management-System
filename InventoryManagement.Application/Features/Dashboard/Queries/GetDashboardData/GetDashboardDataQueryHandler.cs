@@ -102,35 +102,30 @@ public class GetDashboardDataQueryHandler : IRequestHandler<GetDashboardDataQuer
             })
             .ToListAsync(cancellationToken);
 
-        // Get low stock alerts
-        var lowStockAlerts = await _context.Products
+        // Get low stock alerts - simplified approach to avoid EF Core translation issues
+        var products = await _context.Products
             .Where(p => p.IsActive)
             .Include(p => p.Category)
-            .SelectMany(p => _context.Inventories
-                .Where(i => i.ProductId == p.Id)
-                .GroupBy(i => i.ProductId)
-                .Select(g => new { 
-                    ProductId = g.Key, 
-                    TotalStock = g.Sum(i => i.Quantity),
-                    LastRestocked = g.Max(i => i.UpdatedAt)
-                })
-                .DefaultIfEmpty()
-                .Select(stock => new LowStockAlertDto
-                {
-                    ProductId = p.Id,
-                    ProductName = p.Name,
-                    ProductSku = p.SKU,
-                    CategoryName = p.Category.Name,
-                    CurrentStock = stock != null ? stock.TotalStock : 0,
-                    LowStockThreshold = p.LowStockThreshold,
-                    UnitPrice = p.Price,
-                    LastRestocked = stock != null ? stock.LastRestocked : p.CreatedAt,
-                    AlertLevel = (stock != null ? stock.TotalStock : 0) == 0 ? "Critical" : "Warning"
-                }))
+            .Include(p => p.InventoryItems)
+            .ToListAsync(cancellationToken);
+
+        var lowStockAlerts = products
+            .Select(p => new LowStockAlertDto
+            {
+                ProductId = p.Id,
+                ProductName = p.Name,
+                ProductSku = p.SKU,
+                CategoryName = p.Category?.Name ?? "Unknown",
+                CurrentStock = p.InventoryItems?.Sum(i => i.Quantity) ?? 0,
+                LowStockThreshold = p.LowStockThreshold,
+                UnitPrice = p.Price,
+                LastRestocked = p.InventoryItems?.Any() == true ? p.InventoryItems.Max(i => i.UpdatedAt) : p.CreatedAt,
+                AlertLevel = (p.InventoryItems?.Sum(i => i.Quantity) ?? 0) == 0 ? "Critical" : "Warning"
+            })
             .Where(x => x.CurrentStock <= x.LowStockThreshold)
             .OrderBy(x => x.CurrentStock)
             .Take(10)
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         // Get category distribution chart data
         var categoryDistribution = await _context.Categories
@@ -187,27 +182,26 @@ public class GetDashboardDataQueryHandler : IRequestHandler<GetDashboardDataQuer
             topMovingProducts[i].Rank = i + 1;
         }
 
-        // Get highest value products
-        var highestValueProducts = await _context.Products
+        // Get highest value products - simplified approach
+        var productsWithInventory = await _context.Products
             .Where(p => p.IsActive)
             .Include(p => p.Category)
-            .SelectMany(p => _context.Inventories
-                .Where(i => i.ProductId == p.Id)
-                .GroupBy(i => i.ProductId)
-                .Select(g => new { ProductId = g.Key, TotalStock = g.Sum(i => i.Quantity) })
-                .DefaultIfEmpty()
-                .Select(stock => new TopProductDto
-                {
-                    ProductId = p.Id,
-                    ProductName = p.Name,
-                    ProductSku = p.SKU,
-                    CategoryName = p.Category.Name,
-                    Quantity = stock != null ? stock.TotalStock : 0,
-                    Value = (stock != null ? stock.TotalStock : 0) * p.Price
-                }))
+            .Include(p => p.InventoryItems)
+            .ToListAsync(cancellationToken);
+
+        var highestValueProducts = productsWithInventory
+            .Select(p => new TopProductDto
+            {
+                ProductId = p.Id,
+                ProductName = p.Name,
+                ProductSku = p.SKU,
+                CategoryName = p.Category?.Name ?? "Unknown",
+                Quantity = p.InventoryItems?.Sum(i => i.Quantity) ?? 0,
+                Value = (p.InventoryItems?.Sum(i => i.Quantity) ?? 0) * p.Price
+            })
             .OrderByDescending(p => p.Value)
             .Take(5)
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         // Add ranking
         for (int i = 0; i < highestValueProducts.Count; i++)

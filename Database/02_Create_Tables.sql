@@ -222,4 +222,131 @@ ELSE
     PRINT 'Transactions table already exists.';
 GO
 
+-- =====================================================
+-- 8. Customers Table
+-- =====================================================
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Customers' AND xtype='U')
+BEGIN
+    CREATE TABLE [dbo].[Customers] (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+        [CustomerCode] NVARCHAR(20) NOT NULL,
+        [FullName] NVARCHAR(100) NOT NULL,
+        [CompanyName] NVARCHAR(100) NULL,
+        [Email] NVARCHAR(100) NULL,
+        [PhoneNumber] NVARCHAR(20) NULL,
+        [Address] NVARCHAR(500) NULL,
+        [CustomerType] NVARCHAR(20) NOT NULL,
+        [Balance] DECIMAL(18,2) NOT NULL,
+        [CreditLimit] DECIMAL(18,2) NOT NULL,
+        [PaymentTermsDays] INT NOT NULL,
+        [TaxId] NVARCHAR(50) NULL,
+        [Notes] NVARCHAR(1000) NULL,
+        [IsActive] BIT NOT NULL,
+        [RegisteredDate] DATETIME2 NOT NULL,
+        [LastPurchaseDate] DATETIME2 NULL,
+        [TotalPurchases] DECIMAL(18,2) NOT NULL,
+        [CreatedAt] DATETIME2 NOT NULL,
+        [UpdatedAt] DATETIME2 NOT NULL,
+        CONSTRAINT [PK_Customers] PRIMARY KEY CLUSTERED ([Id] ASC),
+        CONSTRAINT [UC_Customers_CustomerCode] UNIQUE ([CustomerCode])
+    );
+    PRINT 'Customers table created successfully.';
+END
+ELSE
+    PRINT 'Customers table already exists.';
+GO
+
+-- =====================================================
+-- 9. CustomerInvoices Table
+-- =====================================================
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='CustomerInvoices' AND xtype='U')
+BEGIN
+    CREATE TABLE [dbo].[CustomerInvoices] (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+        [InvoiceNumber] NVARCHAR(50) NOT NULL,
+        [CustomerId] INT NOT NULL,
+        [InvoiceDate] DATETIME2 NOT NULL,
+        [DueDate] DATETIME2 NOT NULL,
+        [SubTotal] DECIMAL(18,2) NOT NULL,
+        [TaxAmount] DECIMAL(18,2) NOT NULL,
+        [DiscountAmount] DECIMAL(18,2) NOT NULL,
+        [TotalAmount] DECIMAL(18,2) NOT NULL,
+        [PaidAmount] DECIMAL(18,2) NOT NULL,
+        [Status] NVARCHAR(20) NOT NULL,
+        [PaymentTerms] NVARCHAR(100) NULL,
+        [Notes] NVARCHAR(500) NULL,
+        [CreatedByUserId] INT NOT NULL,
+        [CreatedAt] DATETIME2 NOT NULL,
+        [UpdatedAt] DATETIME2 NOT NULL,
+        [IsActive] BIT NOT NULL,
+        CONSTRAINT [PK_CustomerInvoices] PRIMARY KEY CLUSTERED ([Id] ASC),
+        CONSTRAINT [UC_CustomerInvoices_InvoiceNumber] UNIQUE ([InvoiceNumber]),
+        CONSTRAINT [FK_CustomerInvoices_Customers] FOREIGN KEY ([CustomerId]) REFERENCES [dbo].[Customers]([Id]),
+        CONSTRAINT [FK_CustomerInvoices_Users] FOREIGN KEY ([CreatedByUserId]) REFERENCES [dbo].[Users]([Id])
+    );
+    PRINT 'CustomerInvoices table created successfully.';
+END
+ELSE
+    PRINT 'CustomerInvoices table already exists.';
+GO
+
+-- =====================================================
+-- 10. CustomerInvoiceItems Table
+-- =====================================================
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='CustomerInvoiceItems' AND xtype='U')
+BEGIN
+    CREATE TABLE [dbo].[CustomerInvoiceItems] (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+        [InvoiceId] INT NOT NULL,
+        [ProductId] INT NOT NULL,
+        [Quantity] INT NOT NULL,
+        [UnitPrice] DECIMAL(18,2) NOT NULL,
+        [DiscountPercentage] DECIMAL(5,2) NOT NULL,
+        [TaxPercentage] DECIMAL(5,2) NOT NULL,
+        [Description] NVARCHAR(200) NULL,
+        [CreatedAt] DATETIME2 NOT NULL,
+        [UpdatedAt] DATETIME2 NOT NULL,
+        [IsActive] BIT NOT NULL,
+        CONSTRAINT [PK_CustomerInvoiceItems] PRIMARY KEY CLUSTERED ([Id] ASC),
+        CONSTRAINT [FK_CustomerInvoiceItems_CustomerInvoices] FOREIGN KEY ([InvoiceId]) REFERENCES [dbo].[CustomerInvoices]([Id]),
+        CONSTRAINT [FK_CustomerInvoiceItems_Products] FOREIGN KEY ([ProductId]) REFERENCES [dbo].[Products]([Id])
+    );
+    PRINT 'CustomerInvoiceItems table created successfully.';
+END
+ELSE
+    PRINT 'CustomerInvoiceItems table already exists.';
+GO
+
+-- =====================================================
+-- 11. CustomerPayments Table
+-- =====================================================
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='CustomerPayments' AND xtype='U')
+BEGIN
+    CREATE TABLE [dbo].[CustomerPayments] (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+        [PaymentNumber] NVARCHAR(50) NOT NULL,
+        [CustomerId] INT NOT NULL,
+        [InvoiceId] INT NULL,
+        [PaymentDate] DATETIME2 NOT NULL,
+        [Amount] DECIMAL(18,2) NOT NULL,
+        [PaymentMethod] NVARCHAR(50) NOT NULL,
+        [PaymentType] NVARCHAR(20) NOT NULL,
+        [ReferenceNumber] NVARCHAR(100) NULL,
+        [Notes] NVARCHAR(500) NULL,
+        [RecordedByUserId] INT NOT NULL,
+        [CreatedAt] DATETIME2 NOT NULL,
+        [UpdatedAt] DATETIME2 NOT NULL,
+        [IsActive] BIT NOT NULL,
+        CONSTRAINT [PK_CustomerPayments] PRIMARY KEY CLUSTERED ([Id] ASC),
+        CONSTRAINT [UC_CustomerPayments_PaymentNumber] UNIQUE ([PaymentNumber]),
+        CONSTRAINT [FK_CustomerPayments_Customers] FOREIGN KEY ([CustomerId]) REFERENCES [dbo].[Customers]([Id]),
+        CONSTRAINT [FK_CustomerPayments_CustomerInvoices] FOREIGN KEY ([InvoiceId]) REFERENCES [dbo].[CustomerInvoices]([Id]),
+        CONSTRAINT [FK_CustomerPayments_Users] FOREIGN KEY ([RecordedByUserId]) REFERENCES [dbo].[Users]([Id])
+    );
+    PRINT 'CustomerPayments table created successfully.';
+END
+ELSE
+    PRINT 'CustomerPayments table already exists.';
+GO
+
 PRINT 'All tables created successfully!';
